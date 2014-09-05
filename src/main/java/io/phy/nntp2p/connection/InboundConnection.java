@@ -3,9 +3,9 @@ package io.phy.nntp2p.connection;
 import io.phy.nntp2p.Application;
 import io.phy.nntp2p.exceptions.NntpUnknownCommandException;
 import io.phy.nntp2p.protocol.ClientCommand;
+import io.phy.nntp2p.protocol.NNTPCommand;
+import io.phy.nntp2p.protocol.NNTPReply;
 import io.phy.nntp2p.protocol.ServerResponse;
-import org.apache.commons.net.SocketClient;
-import org.apache.commons.net.nntp.NNTPReply;
 
 import java.io.*;
 import java.net.Socket;
@@ -57,10 +57,19 @@ public class InboundConnection extends BaseConnection implements Runnable
                 }
             }
         }
+
+        log.info("Socket closed: "+socket);
     }
 
-    private void DispatchCommand(ClientCommand command) {
-        // Stuff to handle a command
+    private void DispatchCommand(ClientCommand command) throws IOException {
+        // Are they a peered cache?
+        if( command.getCommand().equals(NNTPCommand.PEER) ) {
+            log.info("Client recognised as a downstream cache peer: "+socket);
+            isPeer = true;
+            WriteData(new ServerResponse(NNTPReply.SERVER_READY_POSTING_NOT_ALLOWED));
+            return;
+        }
+
         log.info("Received command: "+command.ToNntpString());
     }
 }

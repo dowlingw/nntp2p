@@ -3,7 +3,8 @@ package io.phy.nntp2p.protocol;
 /**
  * Because org.apache.commons.net.nntp.NNTPCommand is just a bit shit
  */
-public enum NntpCommands {
+public enum NNTPCommand {
+
 //    ARTICLE,
 //    BODY,
 //    GROUP,
@@ -21,5 +22,8 @@ public enum NntpCommands {
 //    STAT,
 //    AUTHINFO,
 //    XOVER,
-//    XHDR
+//    XHDR,
+
+    // RFC3977 extensions provided by NNTP2P
+    PEER,   // Identify as a peer
 }
