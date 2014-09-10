@@ -20,8 +20,8 @@ Feature Roadmap
 This is a work in progress, the following items are on the immediate horizon
 
 * Working v1.0
+* Replace pools with queues/broadcast
 * Add SSL support for inbound clients
-* Implement job queues for better article checking
 * Asynchronous cache requests across cluster
 * Pluggable caching logic
 

@@ -1,6 +1,7 @@
 package io.phy.nntp2p.connection;
 
 import io.phy.nntp2p.Application;
+import io.phy.nntp2p.configuration.ConnectionType;
 import io.phy.nntp2p.exceptions.NntpUnknownCommandException;
 import io.phy.nntp2p.protocol.ClientCommand;
 import io.phy.nntp2p.protocol.NNTPCommand;
@@ -70,6 +71,53 @@ public class InboundConnection extends BaseConnection implements Runnable
             return;
         }
 
+        if( command.getCommand().equals(NNTPCommand.ARTICLE)) {
+            // Do some validation over the article
+            if( command.getArguments().size() > 1 ) {
+                log.fine("Invalid ARTICLE request: "+command.ToNntpString());
+                WriteData(new ServerResponse(NNTPReply.COMMAND_SYNTAX_ERROR));
+                return;
+            }
+
+            // Get a conncetion from upstream
+            OutboundConnection connection = GetConnection(new ConnectionType[]{ConnectionType.Primary});
+            if( connection != null ) {
+                log.fine("No upstream connection available to serve request");
+                WriteData(new ServerResponse(NNTPReply.X_NNTP2P_NOUPSTREAM_AVAILABLE));
+                return;
+            }
+
+            // Perform the lookup on the upstream connection
+            if ( command.getArguments().size() == 0 ) {
+                // Handle the case where client has selected current article
+                connection.GetArticle();
+            } else {
+                connection.GetArticle(command.getArguments().get(0));
+            }
+            // TODO: Handle the various exceptions that can be thrown from the client
+        }
+
         log.info("Received command: "+command.ToNntpString());
+    }
+
+    /**
+     * Return an OutboundConnection instance from the pool.
+     *
+     * Accepts a list of connection types in order, the method will attempt to borrow a single connection
+     * from these types in order. Caller is responsible for returning connection to the pool
+     */
+    private OutboundConnection GetConnection( ConnectionType[] typePriority ) {
+        for ( ConnectionType type : typePriority ) {
+            try {
+                OutboundConnection poolConnection = parent.getOutboundPeers().borrowObject(type);
+                if( poolConnection != null ) {
+                    return poolConnection;
+                }
+            } catch (Exception e) {
+                // Do nothing
+            }
+        }
+
+        return null;
     }
 }

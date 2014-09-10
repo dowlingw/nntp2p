@@ -5,7 +5,6 @@ package io.phy.nntp2p.protocol;
  */
 public enum NNTPCommand {
 
-//    ARTICLE,
 //    BODY,
 //    GROUP,
 //    HEAD,
@@ -23,6 +22,9 @@ public enum NNTPCommand {
 //    AUTHINFO,
 //    XOVER,
 //    XHDR,
+
+
+    ARTICLE,
 
     // RFC3977 extensions provided by NNTP2P
     PEER,   // Identify as a peer

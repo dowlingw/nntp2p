@@ -70,7 +70,10 @@ public class OutboundConnectionPoolFactory extends BaseKeyedPooledObjectFactory<
         }
 
         track.get(configurationToUse).incrementNumberAssignedConnections();
-        return new OutboundConnection(configurationToUse);
+        OutboundConnection connection = new OutboundConnection(configurationToUse);
+        connection.Connect();
+
+        return connection;
     }
 
     @Override
