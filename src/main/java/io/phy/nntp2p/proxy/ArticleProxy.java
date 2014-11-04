@@ -1,4 +1,4 @@
-package io.phy.nntp2p.v2;
+package io.phy.nntp2p.proxy;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 

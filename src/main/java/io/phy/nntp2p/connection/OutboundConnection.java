@@ -1,6 +1,7 @@
 package io.phy.nntp2p.connection;
 
 import io.phy.nntp2p.configuration.ServerConfigurationItem;
+import io.phy.nntp2p.proxy.IArticleProvider;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.net.SocketFactory;
@@ -9,7 +10,7 @@ import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.net.Socket;
 
-public class OutboundConnection {
+public class OutboundConnection implements IArticleProvider {
     private ServerConfigurationItem configuration;
 
     private Socket clientSocket;
@@ -32,11 +33,13 @@ public class OutboundConnection {
         }
     }
 
-    public void GetArticle() {
+    @Override
+    public boolean HasArticle(String messageId) throws InternalError {
         throw new NotImplementedException();
     }
 
-    public void GetArticle(String s) {
+    @Override
+    public String GetArticle(String messageId) {
         throw new NotImplementedException();
     }
 }

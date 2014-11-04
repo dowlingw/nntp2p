@@ -1,12 +1,11 @@
 package io.phy.nntp2p.connection;
 
-import io.phy.nntp2p.Application;
-import io.phy.nntp2p.configuration.ConnectionType;
 import io.phy.nntp2p.exceptions.NntpUnknownCommandException;
 import io.phy.nntp2p.protocol.ClientCommand;
 import io.phy.nntp2p.protocol.NNTPCommand;
 import io.phy.nntp2p.protocol.NNTPReply;
 import io.phy.nntp2p.protocol.ServerResponse;
+import io.phy.nntp2p.proxy.ArticleProxy;
 
 import java.io.*;
 import java.net.Socket;
@@ -14,15 +13,15 @@ import java.util.logging.Logger;
 
 public class InboundConnection extends BaseConnection implements Runnable
 {
-    private Application parent;
+    private ArticleProxy proxy;
     private boolean isPeer;
 
     protected final static Logger log = Logger.getLogger(InboundConnection.class.getName());
 
-    public InboundConnection(Socket socket, Application application) throws IOException {
+    public InboundConnection(Socket socket, ArticleProxy proxy) throws IOException {
         super(socket);
 
-        parent = application;
+        this.proxy = proxy;
         isPeer = false;
     }
 
@@ -79,45 +78,10 @@ public class InboundConnection extends BaseConnection implements Runnable
                 return;
             }
 
-            // Get a conncetion from upstream
-            OutboundConnection connection = GetConnection(new ConnectionType[]{ConnectionType.Primary});
-            if( connection != null ) {
-                log.fine("No upstream connection available to serve request");
-                WriteData(new ServerResponse(NNTPReply.X_NNTP2P_NOUPSTREAM_AVAILABLE));
-                return;
-            }
-
-            // Perform the lookup on the upstream connection
-            if ( command.getArguments().size() == 0 ) {
-                // Handle the case where client has selected current article
-                connection.GetArticle();
-            } else {
-                connection.GetArticle(command.getArguments().get(0));
-            }
-            // TODO: Handle the various exceptions that can be thrown from the client
+            String articleData = proxy.GetArticle(command.getArguments().get(0),isPeer);
+            // TODO: Everything else here
         }
 
         log.info("Received command: "+command.ToNntpString());
-    }
-
-    /**
-     * Return an OutboundConnection instance from the pool.
-     *
-     * Accepts a list of connection types in order, the method will attempt to borrow a single connection
-     * from these types in order. Caller is responsible for returning connection to the pool
-     */
-    private OutboundConnection GetConnection( ConnectionType[] typePriority ) {
-        for ( ConnectionType type : typePriority ) {
-            try {
-                OutboundConnection poolConnection = parent.getOutboundPeers().borrowObject(type);
-                if( poolConnection != null ) {
-                    return poolConnection;
-                }
-            } catch (Exception e) {
-                // Do nothing
-            }
-        }
-
-        return null;
     }
 }
