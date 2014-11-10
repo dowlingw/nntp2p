@@ -1,5 +1,6 @@
 package io.phy.nntp2p.proxy.provider.nntp;
 
+import io.phy.nntp2p.configuration.ConnectionType;
 import io.phy.nntp2p.configuration.ServerConfigurationItem;
 import io.phy.nntp2p.connection.OutboundConnection;
 import io.phy.nntp2p.proxy.IArticleProvider;
@@ -88,5 +89,10 @@ public class NntpArticleProvider implements IArticleProvider {
         }
 
         return article;
+    }
+
+    @Override
+    public ConnectionType ProviderType() {
+        return _config.getConnectionType();
     }
 }

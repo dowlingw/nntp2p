@@ -1,5 +1,6 @@
 package io.phy.nntp2p.connection;
 
+import io.phy.nntp2p.configuration.ConnectionType;
 import io.phy.nntp2p.configuration.ServerConfigurationItem;
 import io.phy.nntp2p.proxy.IArticleProvider;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -41,5 +42,10 @@ public class OutboundConnection implements IArticleProvider {
     @Override
     public String GetArticle(String messageId) {
         throw new NotImplementedException();
+    }
+
+    @Override
+    public ConnectionType ProviderType() {
+        return configuration.getConnectionType();
     }
 }

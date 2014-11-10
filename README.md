@@ -6,7 +6,7 @@ Introduction
 This is a very quick and dirty implementation of a peering, caching NNTP proxy.
 
 ### Client Support
-The first release aims to target simple clients that only retrieve individual articles by ID, eg: NZB clients.
+The first release aims to target simple clients that only retrieve individual articles by message id, eg: NZB clients.
 
 ### Caching strategy
 Naive by design, the proxy will attempt to serve requests from peered caches first.
@@ -22,8 +22,14 @@ This is a work in progress, the following items are on the immediate horizon
 * Working v1.0
 * Replace pools with queues/broadcast
 * Add SSL support for inbound clients
+* Add authentication for clients
+  - Move cache flag into user profile
+  - Usage tracking
 * Asynchronous cache requests across cluster
-* Pluggable caching logic
+* Configurable cache providers / tiering
+* Detect missing articles
+* Preseeding NZB interface
+* Cache loop detection
 
 
 License
