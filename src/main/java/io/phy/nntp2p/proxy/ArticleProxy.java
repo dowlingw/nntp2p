@@ -152,9 +152,14 @@ public class ArticleProxy {
         }
 
         @Override
-        public ArticleCheckResult call() throws Exception {
-            // TODO: Stuff
-            throw new NotImplementedException();
+        public ArticleCheckResult call() {
+            // TODO: This just looks wrong
+            ArticleCheckResult result = new ArticleCheckResult();
+            result.messageId = messageId;
+            result.provider = provider;
+            result.hasMessage = provider.HasArticle(messageId);
+
+            return result;
         }
     }
 }
