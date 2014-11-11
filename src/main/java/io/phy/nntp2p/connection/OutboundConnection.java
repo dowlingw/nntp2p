@@ -38,6 +38,7 @@ public class OutboundConnection implements IArticleProvider {
     public boolean HasArticle(String messageId) throws InternalError {
         throw new NotImplementedException();
         // TODO: Issue STAT command
+
     }
 
     @Override

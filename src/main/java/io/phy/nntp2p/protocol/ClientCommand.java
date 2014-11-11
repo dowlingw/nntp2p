@@ -43,6 +43,7 @@ public class ClientCommand implements NntpProtocolMessage {
     public static ClientCommand Parse(String input) throws NntpUnknownCommandException {
         String[] data = input.split(" ");
         if( data.length < 1 ) {
+            // TODO: Fix this exception
             throw new IllegalThreadStateException("wahh");
         }
 

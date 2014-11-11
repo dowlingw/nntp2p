@@ -43,6 +43,7 @@ public class NNTPReply {
     public static final int PERMISSION_DENIED                  = 502;
     public static final int PROGRAM_FAULT                      = 503;
 
+    // TODO: Get rid of this by implementing Authentication
     // RFC3977 extensions provided by NNTP2P
     public static final int X_NNTP2P_NOUPSTREAM_AVAILABLE      = 490;
 
