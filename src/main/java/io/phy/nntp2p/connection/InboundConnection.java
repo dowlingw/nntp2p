@@ -19,7 +19,7 @@ public class InboundConnection extends BaseConnection implements Runnable
     protected final static Logger log = Logger.getLogger(InboundConnection.class.getName());
 
     public InboundConnection(Socket socket, ArticleProxy proxy) throws IOException {
-        super(socket);
+        BindToSocket(socket);
 
         this.proxy = proxy;
         isPeer = false;
@@ -63,8 +63,8 @@ public class InboundConnection extends BaseConnection implements Runnable
 
     private void DispatchCommand(ClientCommand command) throws IOException, NntpUnknownCommandException {
         switch (command.getCommand()) {
-            case ARTICLE:
-                cmdArticle(command);
+            case BODY:
+                cmdBody(command);
                 break;
 
             case PEER:
@@ -83,7 +83,7 @@ public class InboundConnection extends BaseConnection implements Runnable
         return;
     }
 
-    private void cmdArticle(ClientCommand command) throws IOException {
+    private void cmdBody(ClientCommand command) throws IOException {
         // Do some validation over the article
         if( command.getArguments().size() > 1 ) {
             log.fine("Invalid ARTICLE request: "+command.ToNntpString());

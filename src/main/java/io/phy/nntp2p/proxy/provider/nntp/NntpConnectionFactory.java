@@ -16,7 +16,9 @@ public class NntpConnectionFactory extends BasePooledObjectFactory<OutboundConne
 
     @Override
     public OutboundConnection create() throws Exception {
-        return new OutboundConnection(config);
+        OutboundConnection connection = new OutboundConnection(config);
+        connection.Connect();
+        return connection;
     }
 
     @Override

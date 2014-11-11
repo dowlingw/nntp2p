@@ -15,7 +15,7 @@ public abstract class BaseConnection {
     protected BufferedReader reader;
     protected BufferedWriter writer;
 
-    public BaseConnection(Socket underlyingSocket) throws IOException {
+    protected void BindToSocket(Socket underlyingSocket) throws IOException {
         socket = underlyingSocket;
 
         // Wire up the
