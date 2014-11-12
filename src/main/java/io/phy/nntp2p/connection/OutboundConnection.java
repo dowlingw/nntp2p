@@ -2,7 +2,6 @@ package io.phy.nntp2p.connection;
 
 import io.phy.nntp2p.configuration.ConnectionType;
 import io.phy.nntp2p.configuration.ServerConfigurationItem;
-import io.phy.nntp2p.exceptions.NntpUnknownCommandException;
 import io.phy.nntp2p.exceptions.NntpUnknownResponseException;
 import io.phy.nntp2p.protocol.ClientCommand;
 import io.phy.nntp2p.protocol.NNTPCommand;
@@ -40,8 +39,44 @@ public class OutboundConnection extends BaseConnection implements IArticleProvid
         }
 
         BindToSocket(clientSocket);
+        try {
 
-        // TODO: HandShake & Authentication
+            // Read server advertisement
+            ServerResponse advertisement = ServerResponse.Parse(reader);
+            if( ! advertisement.getResponseCode().isPositiveCompletion() ) {
+                // TODO: Invalidate connection
+            }
+
+            // Always attempt authentication
+            if( configuration.getCredentials() != null ) {
+                ClientCommand sendUsername = new ClientCommand(NNTPCommand.AUTHINFO);
+                sendUsername.getArguments().add("USER");
+                sendUsername.getArguments().add(configuration.getCredentials().getUsername());
+
+                WriteData(sendUsername);
+                ServerResponse sendUsernameResponse = ServerResponse.Parse(reader);
+
+                // TODO: Support AUTHINFO fully
+                if( sendUsernameResponse.getResponseCode() != NNTPReply.MORE_AUTH_INFO_REQUIRED ) {
+                    // TODO: Invalidate connection
+                }
+
+                ClientCommand sendPassword = new ClientCommand(NNTPCommand.AUTHINFO);
+                sendPassword.getArguments().add("PASS");
+                sendPassword.getArguments().add(configuration.getCredentials().getPassword());
+
+                WriteData(sendPassword);
+                ServerResponse sendPasswordResponse = ServerResponse.Parse(reader);
+
+                // TODO: Support AUTHINFO properly
+                if( sendPasswordResponse.getResponseCode() != NNTPReply.AUTHENTICATION_ACCEPTED ) {
+                    // TODO: Invalidate connection
+                }
+            }
+
+        } catch (NntpUnknownResponseException e) {
+            // TODO: Invalidate connection
+        }
     }
 
     @Override
@@ -51,13 +86,7 @@ public class OutboundConnection extends BaseConnection implements IArticleProvid
 
         try {
             WriteData(upstreamStat);
-            String rawResponse = reader.readLine();
-            if( rawResponse == null ) {
-                // TODO: Handle better
-                return false;
-            }
-
-            ServerResponse response = ServerResponse.Parse(rawResponse);
+            ServerResponse response = ServerResponse.Parse(reader);
             return (response.getResponseCode() == NNTPReply.ARTICLE_RETRIEVED_REQUEST_TEXT_SEPARATELY);
 
         } catch (IOException e) {

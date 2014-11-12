@@ -16,7 +16,7 @@ public enum NNTPCommand {
 //    POST,
 //    QUIT,
 //    SLAVE,
-//    AUTHINFO,
+    AUTHINFO,
 //    XOVER,
 //    XHDR,
 
@@ -27,5 +27,5 @@ public enum NNTPCommand {
 
     // TODO: Remove this command by implementing Authentication
     // RFC3977 extensions provided by NNTP2P
-    PEER,   // Identify as a peer
+    PEER,
 }

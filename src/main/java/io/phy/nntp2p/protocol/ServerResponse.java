@@ -2,6 +2,9 @@ package io.phy.nntp2p.protocol;
 
 import io.phy.nntp2p.exceptions.NntpUnknownResponseException;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+
 public class ServerResponse implements NntpProtocolMessage {
     private NNTPReply responseCode;
 
@@ -28,11 +31,15 @@ public class ServerResponse implements NntpProtocolMessage {
         // See if the command is one we know about
         NNTPReply command;
         try {
-            command = NNTPReply.valueOf(data[0]);
+            command = NNTPReply.Resolve(Integer.parseInt(data[0]));
         } catch (IllegalArgumentException e) {
             throw new NntpUnknownResponseException();
         }
 
         return new ServerResponse(command);
+    }
+
+    public static ServerResponse Parse(BufferedReader reader) throws NntpUnknownResponseException, IOException {
+        return ServerResponse.Parse(reader.readLine());
     }
 }

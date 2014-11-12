@@ -10,7 +10,7 @@ public class ServerConfigurationItem {
     private Integer maxConnections;
     private ConnectionType connectionType;
 
-    private PasswordCredential credential;
+    private PasswordCredential credentials;
 
     public ServerConfigurationItem(String hostname, Integer port, boolean useSsl, Integer maxConnections, ConnectionType connectionType) {
         this.hostname = hostname;
@@ -26,7 +26,7 @@ public class ServerConfigurationItem {
         this.useSsl = useSsl;
         this.maxConnections = maxConnections;
         this.connectionType = connectionType;
-        this.credential = credential;
+        this.credentials = credential;
     }
 
     public String getHostname() {
@@ -47,5 +47,13 @@ public class ServerConfigurationItem {
 
     public Integer getMaxConnections() {
         return maxConnections;
+    }
+
+    public PasswordCredential getCredentials() {
+        return credentials;
+    }
+
+    public void setCredentials(PasswordCredential credentials) {
+        this.credentials = credentials;
     }
 }

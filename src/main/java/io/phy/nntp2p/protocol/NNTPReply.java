@@ -1,18 +1,38 @@
 package io.phy.nntp2p.protocol;
 
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
+
 public enum NNTPReply {
+    SERVER_READY_POSTING_ALLOWED (200),
     SERVER_READY_POSTING_NOT_ALLOWED (201),
     ARTICLE_RETRIEVED_HEAD_AND_BODY_FOLLOW (220),
     ARTICLE_RETRIEVED_REQUEST_TEXT_SEPARATELY (223),
+    AUTHENTICATION_ACCEPTED (281),
+    MORE_AUTH_INFO_REQUIRED (381),
     NO_SUCH_ARTICLE_FOUND (430),
     COMMAND_NOT_RECOGNIZED (500),
-    COMMAND_SYNTAX_ERROR (501)
+    COMMAND_SYNTAX_ERROR (501),
+    PERMISSION_DENIED (502);
     ;
 
-    private Integer responseCode;
+    // Allow reverse lookups
+    private static final Map<Integer,NNTPReply> lookup = new HashMap<Integer,NNTPReply>();
+    static {
+        for(NNTPReply s : EnumSet.allOf(NNTPReply.class))
+            lookup.put(s.responseCode, s);
+    }
+
+    // Reverse Lookups
+    public static NNTPReply Resolve(Integer responseCode) {
+        return lookup.get(responseCode);
+    }
+
+    protected Integer responseCode;
 
     NNTPReply(Integer responseCode) {
-        this.responseCode = responseCode;
+     this.responseCode = responseCode;
     }
 
     public boolean isInformational()
@@ -57,11 +77,8 @@ public enum NNTPReply {
 //    public static final int NEW_NEWSGROUP_LIST_FOLLOWS         = 231;
 //    public static final int ARTICLE_TRANSFERRED_OK             = 235;
 //    public static final int ARTICLE_POSTED_OK                  = 240;
-//    public static final int AUTHENTICATION_ACCEPTED            = 281;
 //    public static final int SEND_ARTICLE_TO_TRANSFER           = 335;
 //    public static final int SEND_ARTICLE_TO_POST               = 340;
-//    public static final int MORE_AUTH_INFO_REQUIRED            = 381;
-//    public static final int SERVICE_DISCONTINUED               = 400;
 //    public static final int NO_SUCH_NEWSGROUP                  = 411;
 //    public static final int NO_NEWSGROUP_SELECTED              = 412;
 //    public static final int NO_CURRENT_ARTICLE_SELECTED        = 420;
@@ -78,5 +95,5 @@ public enum NNTPReply {
 //    public static final int AUTHENTICATION_REJECTED            = 482;
 //    public static final int COMMAND_NOT_RECOGNIZED             = 500;
 //    public static final int COMMAND_SYNTAX_ERROR               = 501;
-//    public static final int PERMISSION_DENIED                  = 502;
+
 //    public static final int PROGRAM_FAULT                      = 503;
