@@ -3,6 +3,7 @@ package io.phy.nntp2p.proxy.provider.nntp;
 import io.phy.nntp2p.configuration.ConnectionType;
 import io.phy.nntp2p.configuration.ServerConfigurationItem;
 import io.phy.nntp2p.connection.OutboundConnection;
+import io.phy.nntp2p.protocol.Article;
 import io.phy.nntp2p.proxy.IArticleProvider;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -56,6 +57,7 @@ public class NntpArticleProvider implements IArticleProvider {
             connection = _pool.borrowObject();
             hasArticle = connection.HasArticle(messageId);
         } catch (Exception e) {
+            // TODO: Whut
             throw new InternalError();
         } finally {
             if( connection != null ) {
@@ -67,9 +69,9 @@ public class NntpArticleProvider implements IArticleProvider {
     }
 
     @Override
-    public String GetArticle(String messageId) {
+    public Article GetArticle(String messageId) {
         OutboundConnection connection = null;
-        String article = null;
+        Article article = null;
 
         // TODO: Be less shit
         if ( _pool.getNumIdle() < 2 ) {

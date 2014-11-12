@@ -69,7 +69,6 @@ public enum NNTPReply {
 //    public static final int SLAVE_STATUS_NOTED               = 202;
 //    public static final int CLOSING_CONNECTION               = 205;
 //    public static final int GROUP_SELECTED                   = 211;
-//    public static final int ARTICLE_RETRIEVED_HEAD_AND_BODY_FOLLOW = 220;
 //    public static final int ARTICLE_RETRIEVED_HEAD_FOLLOWS = 221;
 //    public static final int ARTICLE_RETRIEVED_BODY_FOLLOWS = 222;
 //    public static final int ARTICLE_RETRIEVED_REQUEST_TEXT_SEPARATELY = 223;
