@@ -2,6 +2,7 @@ package io.phy.nntp2p.connection;
 
 import io.phy.nntp2p.exceptions.ArticleNotFoundException;
 import io.phy.nntp2p.exceptions.NntpUnknownCommandException;
+import io.phy.nntp2p.protocol.Article;
 import io.phy.nntp2p.protocol.ClientCommand;
 import io.phy.nntp2p.protocol.NNTPReply;
 import io.phy.nntp2p.protocol.ServerResponse;
@@ -92,14 +93,15 @@ public class InboundConnection extends BaseConnection implements Runnable
         }
 
         String messageId = command.getArguments().get(0);
+        Article articleData;
         try {
-            String articleData = proxy.GetArticle(messageId,isPeer);
+            articleData = proxy.GetArticle(messageId,isPeer);
         } catch (ArticleNotFoundException e) {
             log.fine("ARTICLE not found: " + messageId);
             WriteData(new ServerResponse(NNTPReply.NO_SUCH_ARTICLE_FOUND));
             return;
         }
-        // TODO: Everything else here
-        WriteData(new ServerResponse(NNTPReply.ARTICLE_RETRIEVED_HEAD_AND_BODY_FOLLOW));
+        WriteData(new ServerResponse(NNTPReply.ARTICLE_RETRIEVED_BODY_FOLLOWS));
+        WriteArticleBody(articleData);
     }
 }

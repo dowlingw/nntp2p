@@ -8,6 +8,8 @@ public enum NNTPReply {
     SERVER_READY_POSTING_ALLOWED (200),
     SERVER_READY_POSTING_NOT_ALLOWED (201),
     ARTICLE_RETRIEVED_HEAD_AND_BODY_FOLLOW (220),
+    ARTICLE_RETRIEVED_HEAD_FOLLOWS (221),
+    ARTICLE_RETRIEVED_BODY_FOLLOWS (222),
     ARTICLE_RETRIEVED_REQUEST_TEXT_SEPARATELY (223),
     AUTHENTICATION_ACCEPTED (281),
     MORE_AUTH_INFO_REQUIRED (381),
@@ -69,8 +71,6 @@ public enum NNTPReply {
 //    public static final int SLAVE_STATUS_NOTED               = 202;
 //    public static final int CLOSING_CONNECTION               = 205;
 //    public static final int GROUP_SELECTED                   = 211;
-//    public static final int ARTICLE_RETRIEVED_HEAD_FOLLOWS = 221;
-//    public static final int ARTICLE_RETRIEVED_BODY_FOLLOWS = 222;
 //    public static final int ARTICLE_RETRIEVED_REQUEST_TEXT_SEPARATELY = 223;
 //    public static final int ARTICLE_LIST_BY_MESSAGE_ID_FOLLOWS = 230;
 //    public static final int NEW_NEWSGROUP_LIST_FOLLOWS         = 231;

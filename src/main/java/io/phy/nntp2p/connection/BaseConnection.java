@@ -1,5 +1,6 @@
 package io.phy.nntp2p.connection;
 
+import io.phy.nntp2p.protocol.Article;
 import io.phy.nntp2p.protocol.NntpProtocolMessage;
 import org.apache.commons.net.SocketClient;
 import org.apache.commons.net.io.CRLFLineReader;
@@ -25,6 +26,25 @@ public abstract class BaseConnection {
 
     public void WriteData(NntpProtocolMessage data) throws IOException {
         writer.write(data.ToNntpString());
+        writer.write(SocketClient.NETASCII_EOL);
+        writer.flush();
+    }
+
+    public void WriteArticleHead(Article data, boolean continues) throws IOException {
+        writer.write(data.getHeaders());
+        writer.write(SocketClient.NETASCII_EOL);
+
+        if( ! continues ) {
+            writer.write(".");
+        }
+        writer.write(SocketClient.NETASCII_EOL);
+        writer.flush();
+    }
+
+    public void WriteArticleBody(Article data) throws IOException {
+        writer.write(data.getContents());
+        writer.write(SocketClient.NETASCII_EOL);
+        writer.write(".");
         writer.write(SocketClient.NETASCII_EOL);
         writer.flush();
     }

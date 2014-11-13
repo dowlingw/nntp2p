@@ -12,6 +12,8 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 public class OutboundConnection extends BaseConnection implements IArticleProvider {
     private ServerConfigurationItem configuration;
@@ -110,6 +112,7 @@ public class OutboundConnection extends BaseConnection implements IArticleProvid
             Article article = new Article();
 
             // Read headers
+            List<String> headerLines = new ArrayList<>();
             while ( true ) {
                 // Read until we get end of headers
                 String rawLine = reader.readLine();
@@ -117,19 +120,23 @@ public class OutboundConnection extends BaseConnection implements IArticleProvid
                     break;
                 }
 
-                String[] split = rawLine.split(": ", 2);
-                if (split.length == 2 ) {
-                    // Using guava multimap so don't have to worry about key collisions
-                    article.getHeaders().put(split[0],split[1]);
-                } else {
-                    // TODO: Handle header folding
-                }
+                headerLines.add(rawLine);
             }
+            article.setHeaders(headerLines);
 
             // TODO: Refactor into multi-line data block handler
-            // TODO: Read BODY
-            throw new NotImplementedException();
+            List<String> bodyLines = new ArrayList<>();
+            String rawLine;
+            while( true ) {
+                rawLine = reader.readLine();
+                if( rawLine.equals(".") ) {
+                    break;
+                }
+                bodyLines.add(rawLine);
+            }
+            article.setContents(bodyLines);
 
+            return article;
 
         } catch (IOException e) {
             // TODO: Handle this

@@ -70,15 +70,15 @@ public class NntpArticleProvider implements IArticleProvider {
 
     @Override
     public Article GetArticle(String messageId) {
-        OutboundConnection connection = null;
         Article article = null;
 
         // TODO: Be less shit
-        if ( _pool.getNumIdle() < 2 ) {
+        if ( (_pool.getMaxTotal() - _pool.getNumActive()) < 2 ) {
             throw new InternalError("Failed");
         }
 
         // TODO: Edge case exists where # idle changes between querying it and actually borrowing an object
+        OutboundConnection connection = null;
         try {
             connection = _pool.borrowObject();
             article = connection.GetArticle(messageId);

@@ -2,6 +2,7 @@ package io.phy.nntp2p.proxy;
 
 import io.phy.nntp2p.configuration.ConnectionType;
 import io.phy.nntp2p.exceptions.ArticleNotFoundException;
+import io.phy.nntp2p.protocol.Article;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
@@ -35,7 +36,7 @@ public class ArticleProxy {
     private BlockingQueue<Runnable> jobQueue;
     private ThreadPoolExecutor jobManager;
 
-    private final long articleCheckTimeoutMillis = 500L;
+    private final long articleCheckTimeoutMillis = 1000L;
 
     public ArticleProxy() {
         providers = new ArrayList<IArticleProvider>();
@@ -48,14 +49,13 @@ public class ArticleProxy {
         providers.add(provider);
     }
 
-    public String GetArticle(String messageId, boolean clientIsCache) throws ArticleNotFoundException {
+    public Article GetArticle(String messageId, boolean clientIsCache) throws ArticleNotFoundException {
         IArticleProvider provider = resolveProvider(messageId,clientIsCache);
         if( provider == null ) {
             throw new ArticleNotFoundException();
         }
 
-        // TODO: Stuff
-        throw new NotImplementedException();
+        return provider.GetArticle(messageId);
     }
 
     /**
@@ -72,7 +72,7 @@ public class ArticleProxy {
         }
 
         // Run ALL the jobs
-        List<Future<ArticleCheckResult>> futures = new ArrayList<Future<ArticleCheckResult>>();
+        List<Future<ArticleCheckResult>> futures;
         try {
             futures = jobManager.invokeAll(jobs, articleCheckTimeoutMillis, TimeUnit.MILLISECONDS);
 
@@ -88,10 +88,10 @@ public class ArticleProxy {
             return determineProvider(providers,clientIsCache);
 
         } catch (InterruptedException e) {
-            e.printStackTrace();
-        } // TODO: Be less shit with exceptions
+            // TODO: Handle this exception
+        }
         catch (ExecutionException e) {
-            e.printStackTrace();
+            // TODO: Handle this exception
         }
 
         return null;
