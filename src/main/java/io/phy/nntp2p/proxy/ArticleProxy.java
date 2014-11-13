@@ -79,7 +79,7 @@ public class ArticleProxy {
             // Providers that have the article
             List<IArticleProvider> providers = new ArrayList<>();
             for( Future<ArticleCheckResult> future : futures ) {
-                if( future.isDone() && future.get().hasMessage )
+                if( future.isDone() && !future.isCancelled() && future.get().hasMessage )
                 {
                     providers.add(future.get().provider);
                 }
