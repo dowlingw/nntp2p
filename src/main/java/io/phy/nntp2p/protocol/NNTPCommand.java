@@ -14,7 +14,7 @@ public enum NNTPCommand {
 //    NEWNEWS,
 //    NEXT,
 //    POST,
-//    QUIT,
+    QUIT,
 //    SLAVE,
     AUTHINFO,
 //    XOVER,

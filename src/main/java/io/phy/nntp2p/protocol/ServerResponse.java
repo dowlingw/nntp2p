@@ -4,17 +4,32 @@ import io.phy.nntp2p.exceptions.NntpUnknownResponseException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ServerResponse implements NntpProtocolMessage {
     private NNTPReply responseCode;
+    private List<String> sections = new ArrayList<>();
 
     public ServerResponse(NNTPReply command) {
         this.responseCode = command;
     }
 
+    public void addArg(String arg) {
+        sections.add(arg);
+    }
+
+    public void addArg(Integer arg) {
+        sections.add(arg.toString());
+    }
+
     @Override
     public String ToNntpString() {
-        return String.valueOf(responseCode);
+        String s = responseCode.responseCode.toString();
+        if( ! sections.isEmpty() ) {
+            s += " " + String.join(" ",sections);
+        }
+        return s;
     }
 
     public NNTPReply getResponseCode() {

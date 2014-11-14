@@ -3,11 +3,11 @@ package io.phy.nntp2p.proxy;
 import io.phy.nntp2p.configuration.ConnectionType;
 import io.phy.nntp2p.exceptions.ArticleNotFoundException;
 import io.phy.nntp2p.protocol.Article;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.logging.Logger;
 
 /**
  *
@@ -36,7 +36,10 @@ public class ArticleProxy {
     private BlockingQueue<Runnable> jobQueue;
     private ThreadPoolExecutor jobManager;
 
-    private final long articleCheckTimeoutMillis = 1000L;
+    // TODO: Figure out something sensible
+    private final long articleCheckTimeoutMillis = 10000L;
+
+    protected final static Logger log = Logger.getLogger(ArticleProxy.class.getName());
 
     public ArticleProxy() {
         providers = new ArrayList<IArticleProvider>();
@@ -52,6 +55,7 @@ public class ArticleProxy {
     public Article GetArticle(String messageId, boolean clientIsCache) throws ArticleNotFoundException {
         IArticleProvider provider = resolveProvider(messageId,clientIsCache);
         if( provider == null ) {
+            log.info("No provider found with article!");
             throw new ArticleNotFoundException();
         }
 
@@ -84,6 +88,7 @@ public class ArticleProxy {
                     providers.add(future.get().provider);
                 }
             }
+            log.info("Number of providers with article before determination: "+providers.size());
 
             return determineProvider(providers,clientIsCache);
 

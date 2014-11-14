@@ -17,6 +17,8 @@ public class InboundConnection extends BaseConnection implements Runnable
     private ArticleProxy proxy;
     private boolean isPeer;
 
+    private boolean listening = true;
+
     protected final static Logger log = Logger.getLogger(InboundConnection.class.getName());
 
     public InboundConnection(Socket socket, ArticleProxy proxy) throws IOException {
@@ -34,7 +36,7 @@ public class InboundConnection extends BaseConnection implements Runnable
             // First thing we have to do is publish a welcome message!
             WriteData(new ServerResponse(NNTPReply.SERVER_READY_POSTING_NOT_ALLOWED));
 
-            while(socket.isConnected()) {
+            while(socket.isConnected() && listening) {
                 ClientCommand command = null;
                 String rawInput = reader.readLine();
                 if( rawInput == null ) { break; }
@@ -63,7 +65,12 @@ public class InboundConnection extends BaseConnection implements Runnable
     }
 
     private void DispatchCommand(ClientCommand command) throws IOException, NntpUnknownCommandException {
+        log.info("Command Received: " + command.ToNntpString());
         switch (command.getCommand()) {
+            case QUIT:
+                cmdQuit();
+                break;
+
             case BODY:
                 cmdBody(command);
                 break;
@@ -77,11 +84,15 @@ public class InboundConnection extends BaseConnection implements Runnable
         }
     }
 
+    private void cmdQuit() throws IOException {
+        listening = false;
+        WriteData(new ServerResponse(NNTPReply.CLOSING_CONNECTION));
+    }
+
     private void cmdPeer(ClientCommand command) throws IOException {
         log.info("Client recognised as a downstream cache peer: "+socket);
         isPeer = true;
         WriteData(new ServerResponse(NNTPReply.SERVER_READY_POSTING_NOT_ALLOWED));
-        return;
     }
 
     private void cmdBody(ClientCommand command) throws IOException {
@@ -101,7 +112,16 @@ public class InboundConnection extends BaseConnection implements Runnable
             WriteData(new ServerResponse(NNTPReply.NO_SUCH_ARTICLE_FOUND));
             return;
         }
-        WriteData(new ServerResponse(NNTPReply.ARTICLE_RETRIEVED_BODY_FOLLOWS));
+        if (articleData == null) {
+            log.fine("BODY got back NULL: " + messageId);
+        }
+
+        // TODO: Have hit a case here where articleData is null
+        ServerResponse response = new ServerResponse(NNTPReply.ARTICLE_RETRIEVED_BODY_FOLLOWS);
+        response.addArg(0);
+        response.addArg(messageId);
+
+        WriteData(response);
         WriteArticleBody(articleData);
     }
 }

@@ -9,6 +9,7 @@ import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
 import java.io.InvalidObjectException;
+import java.util.logging.Logger;
 
 /**
  * This provider manages a single NNTP configuration.
@@ -31,6 +32,8 @@ public class NntpArticleProvider implements IArticleProvider {
     private ServerConfigurationItem _config;
     private GenericObjectPool<OutboundConnection> _pool;
 
+    protected final static Logger log = Logger.getLogger(NntpArticleProvider.class.getName());
+
     public NntpArticleProvider(ServerConfigurationItem config) throws InvalidObjectException {
         _config = config;
 
@@ -50,6 +53,7 @@ public class NntpArticleProvider implements IArticleProvider {
 
     @Override
     public boolean HasArticle(String messageId) throws InternalError {
+        log.info("HasArticle: " + messageId);
         OutboundConnection connection = null;
         boolean hasArticle = false;
 
@@ -70,10 +74,12 @@ public class NntpArticleProvider implements IArticleProvider {
 
     @Override
     public Article GetArticle(String messageId) {
+        log.info("GetArticle: " + messageId);
         Article article = null;
 
         // TODO: Be less shit
         if ( (_pool.getMaxTotal() - _pool.getNumActive()) < 2 ) {
+            log.warning("No upstream threads available to service GET request");
             throw new InternalError("Failed");
         }
 
