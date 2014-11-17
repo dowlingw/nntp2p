@@ -1,41 +1,31 @@
 package io.phy.nntp2p.protocol;
 
-import org.apache.commons.net.SocketClient;
-
-import java.util.List;
-
 /**
  * A really simple Article class.
  * We don't care about interpreting the header or contents chunk - so we just store them as a chunk of data including CRLF
  */
 public class Article {
-    private String headers;
-    private String contents;
+    private byte[] headers;
+    private byte[] contents;
 
-    public Article() {
+    public Article(byte[] headerBytes, byte[] dataBytes) {
+        headers = headerBytes;
+        contents = dataBytes;
     }
 
-    public String getHeaders() {
+    public byte[] getHeaders() {
         return headers;
     }
 
-    public void setHeaders(String headers) {
+    public void setHeaders(byte[] headers) {
         this.headers = headers;
     }
 
-    public void setHeaders(List<String> lines) {
-        headers = String.join(SocketClient.NETASCII_EOL, lines);
-    }
-
-    public void setContents(List<String> lines) {
-        contents = String.join(SocketClient.NETASCII_EOL, lines);
-    }
-
-    public String getContents() {
+    public byte[] getContents() {
         return contents;
     }
 
-    public void setContents(String contents) {
+    public void setContents(byte[] contents) {
         this.contents = contents;
     }
 }

@@ -1,19 +1,17 @@
 package io.phy.nntp2p.connection;
 
+import com.sun.corba.se.spi.activation.Server;
 import io.phy.nntp2p.configuration.ConnectionType;
 import io.phy.nntp2p.configuration.ServerConfigurationItem;
 import io.phy.nntp2p.exceptions.NntpUnknownResponseException;
 import io.phy.nntp2p.protocol.*;
 import io.phy.nntp2p.proxy.IArticleProvider;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
 
 public class OutboundConnection extends BaseConnection implements IArticleProvider {
     private ServerConfigurationItem configuration;
@@ -109,34 +107,11 @@ public class OutboundConnection extends BaseConnection implements IArticleProvid
                 return null;
             }
 
-            Article article = new Article();
-
             // Read headers
-            List<String> headerLines = new ArrayList<>();
-            while ( true ) {
-                // Read until we get end of headers
-                String rawLine = reader.readLine();
-                if( rawLine.length() == 0 ) {
-                    break;
-                }
+            byte[] headerBytes = ServerResponse.ReadMultiLine(reader,true);
+            byte[] dataBytes = ServerResponse.ReadMultiLine(reader,false);
 
-                headerLines.add(rawLine);
-            }
-            article.setHeaders(headerLines);
-
-            // TODO: Refactor into multi-line data block handler
-            List<String> bodyLines = new ArrayList<>();
-            String rawLine;
-            while( true ) {
-                rawLine = reader.readLine();
-                if( rawLine.equals(".") ) {
-                    break;
-                }
-                bodyLines.add(rawLine);
-            }
-            article.setContents(bodyLines);
-
-            return article;
+            return new Article(headerBytes,dataBytes);
 
         } catch (IOException e) {
             // TODO: Handle this

@@ -2,7 +2,7 @@ package io.phy.nntp2p.protocol;
 
 import io.phy.nntp2p.exceptions.NntpUnknownResponseException;
 
-import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +54,30 @@ public class ServerResponse implements NntpProtocolMessage {
         return new ServerResponse(command);
     }
 
-    public static ServerResponse Parse(BufferedReader reader) throws NntpUnknownResponseException, IOException {
-        return ServerResponse.Parse(reader.readLine());
+    public static ServerResponse Parse(NntpStreamReader reader) throws NntpUnknownResponseException, IOException {
+        return ServerResponse.Parse(reader.readLineString());
+    }
+
+    public static byte[] ReadMultiLine(NntpStreamReader reader, boolean emptyLineTermination) throws IOException {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        while( true ) {
+            byte[] raw = reader.readLineBytes();
+
+            if( emptyLineTermination && raw.length == 0 ) {
+                break;
+            }
+
+            if( raw.length == 1 && raw[0] == 0x2E ) {
+                break;
+            }
+
+            bytes.write(raw,0,raw.length);
+            if( bytes.size() > raw.length ) {
+                bytes.write(0x0D);
+                bytes.write(0x0A);
+            }
+        }
+
+        return bytes.toByteArray();
     }
 }
