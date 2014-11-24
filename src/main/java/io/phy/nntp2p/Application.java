@@ -3,6 +3,7 @@ package io.phy.nntp2p;
 import io.phy.nntp2p.connection.InboundConnection;
 import io.phy.nntp2p.configuration.ServerConfigurationItem;
 import io.phy.nntp2p.proxy.ArticleProxy;
+import io.phy.nntp2p.proxy.provider.cache.LocalCache;
 import io.phy.nntp2p.proxy.provider.nntp.NntpArticleProvider;
 
 import javax.net.ServerSocketFactory;
@@ -21,11 +22,16 @@ public class Application {
 
     public Application(List<ServerConfigurationItem> outboundPeerConfiguration) throws InvalidObjectException {
         proxy = new ArticleProxy();
+
         // Configured NNTP Servers
         for (ServerConfigurationItem config : outboundPeerConfiguration) {
             NntpArticleProvider nntpArticleProvider = new NntpArticleProvider(config);
             proxy.RegisterProvider(nntpArticleProvider);
         }
+
+        // Register the local cache
+        LocalCache localCache = new LocalCache();
+        proxy.RegisterCache(localCache);
     }
 
     public void RunApplication() throws IOException {

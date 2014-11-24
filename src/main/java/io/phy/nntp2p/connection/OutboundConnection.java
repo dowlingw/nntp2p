@@ -1,6 +1,5 @@
 package io.phy.nntp2p.connection;
 
-import com.sun.corba.se.spi.activation.Server;
 import io.phy.nntp2p.configuration.ConnectionType;
 import io.phy.nntp2p.configuration.ServerConfigurationItem;
 import io.phy.nntp2p.exceptions.NntpUnknownResponseException;
@@ -111,7 +110,7 @@ public class OutboundConnection extends BaseConnection implements IArticleProvid
             byte[] headerBytes = ServerResponse.ReadMultiLine(reader,true);
             byte[] dataBytes = ServerResponse.ReadMultiLine(reader,false);
 
-            return new Article(headerBytes,dataBytes);
+            return new Article(messageId, headerBytes,dataBytes);
 
         } catch (IOException e) {
             // TODO: Handle this

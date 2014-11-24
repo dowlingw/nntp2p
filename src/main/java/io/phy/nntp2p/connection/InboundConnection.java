@@ -38,7 +38,7 @@ public class InboundConnection extends BaseConnection implements Runnable
 
             while(socket.isConnected() && listening) {
                 ClientCommand command = null;
-                String rawInput = reader.readLine();
+                String rawInput = reader.readLineString();
                 if( rawInput == null ) { break; }
                 try {
                     command = ClientCommand.Parse(rawInput);

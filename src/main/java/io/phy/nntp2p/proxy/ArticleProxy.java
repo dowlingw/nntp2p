@@ -3,6 +3,7 @@ package io.phy.nntp2p.proxy;
 import io.phy.nntp2p.configuration.ConnectionType;
 import io.phy.nntp2p.exceptions.ArticleNotFoundException;
 import io.phy.nntp2p.protocol.Article;
+import io.phy.nntp2p.proxy.provider.IArticleCache;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,7 @@ import java.util.logging.Logger;
  */
 public class ArticleProxy {
     private List<IArticleProvider> providers;
+    private List<IArticleCache> caches;
 
     private BlockingQueue<Runnable> jobQueue;
     private ThreadPoolExecutor jobManager;
@@ -42,10 +44,15 @@ public class ArticleProxy {
     protected final static Logger log = Logger.getLogger(ArticleProxy.class.getName());
 
     public ArticleProxy() {
-        providers = new ArrayList<IArticleProvider>();
+        providers = new ArrayList<>();
+        caches = new ArrayList<>();
 
         jobQueue = new LinkedBlockingQueue<Runnable>();
         jobManager = new ThreadPoolExecutor(1,Integer.MAX_VALUE,1L, TimeUnit.HOURS,jobQueue);
+    }
+
+    public void RegisterCache(IArticleCache cache) {
+        caches.add(cache);
     }
 
     public void RegisterProvider(IArticleProvider provider) {
@@ -73,6 +80,9 @@ public class ArticleProxy {
         List<ArticleCheckJob> jobs = new ArrayList<ArticleCheckJob>();
         for ( IArticleProvider provider : providers ) {
             jobs.add(new ArticleCheckJob(provider,messageId));
+        }
+        for (IArticleCache cache : caches ) {
+            jobs.add(new ArticleCheckJob(cache,messageId));
         }
 
         // Run ALL the jobs
