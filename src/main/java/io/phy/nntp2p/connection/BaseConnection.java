@@ -18,6 +18,8 @@ public abstract class BaseConnection {
 
     private OutputStreamWriter osWriter;
 
+    protected boolean is_valid = true;
+
     protected void BindToSocket(Socket underlyingSocket) throws IOException {
         socket = underlyingSocket;
 
@@ -61,5 +63,9 @@ public abstract class BaseConnection {
                 outputStream.flush();
             }
         }
+    }
+
+    public boolean isValid() {
+        return is_valid;
     }
 }

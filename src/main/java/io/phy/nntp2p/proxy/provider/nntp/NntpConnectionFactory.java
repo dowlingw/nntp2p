@@ -25,4 +25,9 @@ public class NntpConnectionFactory extends BasePooledObjectFactory<OutboundConne
     public PooledObject<OutboundConnection> wrap(OutboundConnection outboundConnection) {
         return new DefaultPooledObject<>(outboundConnection);
     }
+
+    @Override
+    public boolean validateObject(PooledObject<OutboundConnection> connection) {
+        return connection.getObject().isValid();
+    }
 }

@@ -40,7 +40,8 @@ public class OutboundConnection extends BaseConnection implements IArticleProvid
             // Read server advertisement
             ServerResponse advertisement = ServerResponse.Parse(reader);
             if( ! advertisement.getResponseCode().isPositiveCompletion() ) {
-                // TODO: Invalidate connection
+                is_valid = false;
+                return;
             }
 
             // Always attempt authentication
@@ -54,7 +55,8 @@ public class OutboundConnection extends BaseConnection implements IArticleProvid
 
                 // TODO: Support AUTHINFO fully
                 if( sendUsernameResponse.getResponseCode() != NNTPReply.MORE_AUTH_INFO_REQUIRED ) {
-                    // TODO: Invalidate connection
+                    is_valid = false;
+                    return;
                 }
 
                 ClientCommand sendPassword = new ClientCommand(NNTPCommand.AUTHINFO);
@@ -66,12 +68,13 @@ public class OutboundConnection extends BaseConnection implements IArticleProvid
 
                 // TODO: Support AUTHINFO properly
                 if( sendPasswordResponse.getResponseCode() != NNTPReply.AUTHENTICATION_ACCEPTED ) {
-                    // TODO: Invalidate connection
-                }
+                    is_valid = false;
+                    return;                }
             }
 
         } catch (NntpUnknownResponseException e) {
-            // TODO: Invalidate connection
+            is_valid = false;
+            return;
         }
     }
 

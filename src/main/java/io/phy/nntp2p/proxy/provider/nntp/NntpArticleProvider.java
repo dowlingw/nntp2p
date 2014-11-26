@@ -45,10 +45,11 @@ public class NntpArticleProvider implements IArticleProvider {
         // Configure and create connection pool
         GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
         poolConfig.setMaxTotal(_config.getMaxConnections());
-        poolConfig.setTestOnBorrow(true);
+        poolConfig.setTestOnCreate(true);
+        poolConfig.setTestOnReturn(true);
         poolConfig.setMaxWaitMillis(MAX_POOL_WAIT_TIME);
 
-        _pool = new GenericObjectPool<OutboundConnection>( new NntpConnectionFactory(_config), poolConfig );
+        _pool = new GenericObjectPool<>( new NntpConnectionFactory(_config), poolConfig );
     }
 
     @Override

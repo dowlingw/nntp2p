@@ -15,47 +15,26 @@ public class NntpStreamReader extends DataInputStream {
     }
 
     private ByteArrayOutputStream readByteLine() throws IOException {
-//        // ORIGINAL
-//        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-//
-//        byte readByte;
-//        boolean prevWasCR = false;
-//        synchronized(this) {
-//            for(; (readByte = this.readByte()) != -1;) {
-//                if(prevWasCR && readByte == 10) {
-//                    return bytes;
-//                }
-//
-//                bytes.write(readByte);
-//                prevWasCR = (readByte == 13);
-//            }
-//        }
-//        return bytes;
-
-
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 
         byte readByte;
         boolean prevWasCR = false;
         synchronized(this) {
-            int bc = 0;
             while((readByte = this.readByte()) != -1) {
-                // Temp debugginglah
-                if( bc >= 82 ) {
-                    System.out.println("I'm being naughty!");
-                }
-                bc++;
+                boolean thisIsCR = (readByte == 0x0D);
+                boolean thisIsLF = (readByte == 0x0A);
+
                 if( prevWasCR ) {
-                    if(readByte == 0x0A) {
+                    if(thisIsLF) {
                         return bytes;
                     }
                     bytes.write(0x0D);
                 }
 
-                prevWasCR = (readByte == 0x0D);
-                if( ! prevWasCR ) {
+                if( ! thisIsCR ) {
                     bytes.write(readByte);
                 }
+                prevWasCR = thisIsCR;
             }
         }
         return bytes;
