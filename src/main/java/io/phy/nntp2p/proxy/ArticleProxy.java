@@ -67,6 +67,7 @@ public class ArticleProxy {
         }
 
         return provider.GetArticle(messageId);
+        // TODO: Uhh, CACHING proxy.... maybe we should cache that ;)
     }
 
     /**

@@ -11,7 +11,7 @@ public abstract class BaseConnection {
     protected Socket socket;
 
     private static final String NNTP_ENCODING = "UTF-8";
-    private static final String NETASCII_EOL = "\r\n";
+    private static final byte[] CRLF = {0x0D, 0x0A};
 
     protected NntpStreamReader reader;
     protected BufferedWriter writer;
@@ -31,26 +31,26 @@ public abstract class BaseConnection {
 
     public void WriteData(NntpProtocolMessage data) throws IOException {
         writer.write(data.ToNntpString());
-        writer.write(NETASCII_EOL);
+        writeByteArray(CRLF);
         writer.flush();
     }
 
     public void WriteArticleHead(Article data, boolean continues) throws IOException {
         writeByteArray(data.getHeaders());
-        writer.write(NETASCII_EOL);
+        writeByteArray(CRLF);
 
         if( ! continues ) {
             writer.write(".");
+            writeByteArray(CRLF);
         }
-        writer.write(NETASCII_EOL);
         writer.flush();
     }
 
     public void WriteArticleBody(Article data) throws IOException {
         writeByteArray(data.getContents());
-        writer.write(NETASCII_EOL);
+        writeByteArray(CRLF);
         writer.write(".");
-        writer.write(NETASCII_EOL);
+        writeByteArray(CRLF);
         writer.flush();
     }
 

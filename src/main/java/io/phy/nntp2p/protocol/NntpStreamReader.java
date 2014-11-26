@@ -1,9 +1,6 @@
 package io.phy.nntp2p.protocol;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 public class NntpStreamReader extends DataInputStream {
 
@@ -14,37 +11,42 @@ public class NntpStreamReader extends DataInputStream {
         this.nntpEncoding = nntpEncoding;
     }
 
-    private ByteArrayOutputStream readByteLine() throws IOException {
+    private ByteArrayOutputStream readByteLine() {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 
-        byte readByte;
         boolean prevWasCR = false;
         synchronized(this) {
-            while((readByte = this.readByte()) != -1) {
-                boolean thisIsCR = (readByte == 0x0D);
-                boolean thisIsLF = (readByte == 0x0A);
+            try {
+                while(true) {
+                    int readByte = this.readUnsignedByte();
 
-                if( prevWasCR ) {
-                    if(thisIsLF) {
-                        return bytes;
+                    boolean thisIsCR = (readByte == 0x0D);
+                    boolean thisIsLF = (readByte == 0x0A);
+
+                    if( prevWasCR ) {
+                        if(thisIsLF) {
+                            break;
+                        }
+                        bytes.write(0x0D);
                     }
-                    bytes.write(0x0D);
-                }
 
-                if( ! thisIsCR ) {
-                    bytes.write(readByte);
+                    if( ! thisIsCR ) {
+                        bytes.write(readByte);
+                    }
+                    prevWasCR = thisIsCR;
                 }
-                prevWasCR = thisIsCR;
+            } catch (IOException e) {
+                // Do nothing, we've reached the end of what we're getting
             }
         }
         return bytes;
     }
 
-    public byte[] readLineBytes() throws IOException {
+    public byte[] readLineBytes() {
         return readByteLine().toByteArray();
     }
 
-    public String readLineString() throws IOException {
+    public String readLineString() throws UnsupportedEncodingException {
         return readByteLine().toString(nntpEncoding);
     }
 }
