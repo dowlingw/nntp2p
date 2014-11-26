@@ -18,7 +18,7 @@ public class NntpStreamReader extends DataInputStream {
         synchronized(this) {
             try {
                 while(true) {
-                    int readByte = this.readUnsignedByte();
+                    byte readByte = this.readByte();
 
                     boolean thisIsCR = (readByte == 0x0D);
                     boolean thisIsLF = (readByte == 0x0A);
