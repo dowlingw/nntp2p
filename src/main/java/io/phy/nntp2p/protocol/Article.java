@@ -1,10 +1,12 @@
 package io.phy.nntp2p.protocol;
 
+import java.io.Serializable;
+
 /**
  * A really simple Article class.
  * We don't care about interpreting the header or contents chunk - so we just store them as a chunk of data including CRLF
  */
-public class Article {
+public class Article implements Serializable {
     private String messageId;
     private byte[] headers;
     private byte[] contents;

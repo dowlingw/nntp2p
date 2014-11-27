@@ -66,8 +66,15 @@ public class ArticleProxy {
             throw new ArticleNotFoundException();
         }
 
-        return provider.GetArticle(messageId);
-        // TODO: Uhh, CACHING proxy.... maybe we should cache that ;)
+        // TODO: Only local caches?
+        Article article = provider.GetArticle(messageId);
+        if( article != null ) {
+            for (IArticleCache cache : caches) {
+                cache.CacheArticle(article);
+            }
+        }
+
+        return article;
     }
 
     /**
@@ -99,7 +106,6 @@ public class ArticleProxy {
                     providers.add(future.get().provider);
                 }
             }
-            log.info("Number of providers with article before determination: "+providers.size());
 
             return determineProvider(providers,clientIsCache);
 

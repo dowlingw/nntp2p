@@ -8,6 +8,7 @@ import org.apache.jcs.access.exception.CacheException;
 import org.apache.jcs.engine.control.CompositeCacheManager;
 
 import java.util.Properties;
+import java.util.logging.Logger;
 
 public class LocalCache implements IArticleCache {
 
@@ -15,6 +16,8 @@ public class LocalCache implements IArticleCache {
     private JCS cache;
 
     private final static String CACHE_REGION_NAME = "articles";
+
+    protected final static Logger log = Logger.getLogger(LocalCache.class.getName());
 
     public LocalCache() {
         Properties props = new Properties();
@@ -56,6 +59,7 @@ public class LocalCache implements IArticleCache {
         } catch (CacheException e) {
             // Do nothing
             // TODO: Do nothing better
+            log.severe("PUT Failure messageId="+article.getMessageId());
         }
     }
 }

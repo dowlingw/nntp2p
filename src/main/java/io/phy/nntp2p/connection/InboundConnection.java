@@ -31,8 +31,6 @@ public class InboundConnection extends BaseConnection implements Runnable
     @Override
     public void run() {
         try {
-            log.info("Server thread running for socket: "+socket.toString());
-
             // First thing we have to do is publish a welcome message!
             WriteData(new ServerResponse(NNTPReply.SERVER_READY_POSTING_NOT_ALLOWED));
 
@@ -60,12 +58,9 @@ public class InboundConnection extends BaseConnection implements Runnable
                 }
             }
         }
-
-        log.info("Socket closed: "+socket);
     }
 
     private void DispatchCommand(ClientCommand command) throws IOException, NntpUnknownCommandException {
-        log.info("Command Received: " + command.ToNntpString());
         switch (command.getCommand()) {
             case QUIT:
                 cmdQuit();

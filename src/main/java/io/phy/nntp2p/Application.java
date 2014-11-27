@@ -41,7 +41,6 @@ public class Application {
         // Spawn a new thread for each incoming connection
         while (true) {
             Socket socket = listenSocket.accept();
-            log.info("Accepted new connection: "+socket.toString());
             new Thread(new InboundConnection(socket,proxy)).start();
         }
     }

@@ -54,7 +54,6 @@ public class NntpArticleProvider implements IArticleProvider {
 
     @Override
     public boolean HasArticle(String messageId) throws InternalError {
-        log.info("HasArticle: " + messageId);
         OutboundConnection connection = null;
         boolean hasArticle = false;
 
@@ -75,7 +74,6 @@ public class NntpArticleProvider implements IArticleProvider {
 
     @Override
     public Article GetArticle(String messageId) {
-        log.info("GetArticle: " + messageId);
         Article article = null;
 
         // TODO: Be less shit
