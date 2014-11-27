@@ -54,7 +54,7 @@ public class OutboundConnection extends BaseConnection implements IArticleProvid
                 ServerResponse sendUsernameResponse = ServerResponse.Parse(reader);
 
                 // TODO: Support AUTHINFO fully
-                if( sendUsernameResponse.getResponseCode() != NNTPReply.MORE_AUTH_INFO_REQUIRED ) {
+                if( sendUsernameResponse.getResponseCode() != NNTPReply.PASSWORD_REQUIRED) {
                     is_valid = false;
                     return;
                 }

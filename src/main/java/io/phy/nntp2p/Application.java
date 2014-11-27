@@ -3,6 +3,7 @@ package io.phy.nntp2p;
 import io.phy.nntp2p.connection.InboundConnection;
 import io.phy.nntp2p.configuration.ServerConfigurationItem;
 import io.phy.nntp2p.proxy.ArticleProxy;
+import io.phy.nntp2p.proxy.UserRepository;
 import io.phy.nntp2p.proxy.provider.cache.LocalCache;
 import io.phy.nntp2p.proxy.provider.nntp.NntpArticleProvider;
 
@@ -19,11 +20,13 @@ public class Application {
     protected final static Logger log = Logger.getLogger(Application.class.getName());
 
     private ArticleProxy proxy;
+    private UserRepository users;
 
-    public Application(List<ServerConfigurationItem> outboundPeerConfiguration) throws InvalidObjectException {
-        proxy = new ArticleProxy();
+    public Application(UserRepository users, List<ServerConfigurationItem> outboundPeerConfiguration) throws InvalidObjectException {
+        this.users = users;
 
         // Configured NNTP Servers
+        proxy = new ArticleProxy();
         for (ServerConfigurationItem config : outboundPeerConfiguration) {
             NntpArticleProvider nntpArticleProvider = new NntpArticleProvider(config);
             proxy.RegisterProvider(nntpArticleProvider);
@@ -41,7 +44,7 @@ public class Application {
         // Spawn a new thread for each incoming connection
         while (true) {
             Socket socket = listenSocket.accept();
-            new Thread(new InboundConnection(socket,proxy)).start();
+            new Thread(new InboundConnection(socket,proxy,users)).start();
         }
     }
 }

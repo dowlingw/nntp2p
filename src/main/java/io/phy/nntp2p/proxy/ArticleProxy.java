@@ -1,6 +1,7 @@
 package io.phy.nntp2p.proxy;
 
 import io.phy.nntp2p.configuration.ConnectionType;
+import io.phy.nntp2p.configuration.User;
 import io.phy.nntp2p.exceptions.ArticleNotFoundException;
 import io.phy.nntp2p.protocol.Article;
 import io.phy.nntp2p.proxy.provider.IArticleCache;
@@ -47,7 +48,7 @@ public class ArticleProxy {
         providers = new ArrayList<>();
         caches = new ArrayList<>();
 
-        jobQueue = new LinkedBlockingQueue<Runnable>();
+        jobQueue = new LinkedBlockingQueue<>();
         jobManager = new ThreadPoolExecutor(1,Integer.MAX_VALUE,1L, TimeUnit.HOURS,jobQueue);
     }
 
@@ -59,8 +60,8 @@ public class ArticleProxy {
         providers.add(provider);
     }
 
-    public Article GetArticle(String messageId, boolean clientIsCache) throws ArticleNotFoundException {
-        IArticleProvider provider = resolveProvider(messageId,clientIsCache);
+    public Article GetArticle(String messageId, User authenticatedUser) throws ArticleNotFoundException {
+        IArticleProvider provider = resolveProvider(messageId, authenticatedUser);
         if( provider == null ) {
             log.info("No provider found with article!");
             throw new ArticleNotFoundException();
@@ -80,10 +81,10 @@ public class ArticleProxy {
     /**
      * Dispatches queries to all the registered providers
      * @param messageId
-     * @param clientIsCache
+     * @param authenticatedUser
      * @return
      */
-    private IArticleProvider resolveProvider(String messageId, boolean clientIsCache) {
+    private IArticleProvider resolveProvider(String messageId, User authenticatedUser) {
         // Generate the list of jobs to run
         List<ArticleCheckJob> jobs = new ArrayList<ArticleCheckJob>();
         for ( IArticleProvider provider : providers ) {
@@ -107,7 +108,7 @@ public class ArticleProxy {
                 }
             }
 
-            return determineProvider(providers,clientIsCache);
+            return determineProvider(providers,authenticatedUser);
 
         } catch (InterruptedException e) {
             // TODO: Handle this exception
@@ -123,14 +124,14 @@ public class ArticleProxy {
      * Implements business rules to determine which provider should be used to resolve a query
      *
      * @param providersWithArticle A list of zero or more providersWithArticle that have a given article
-     * @param clientIsPeer Whether or not the calling client is a cache node
+     * @param authenticatedUser Whether or not the calling client is a cache node
      * @return The provider to use, or null
      */
-    public static IArticleProvider determineProvider(List<IArticleProvider> providersWithArticle, boolean clientIsPeer) {
+    public static IArticleProvider determineProvider(List<IArticleProvider> providersWithArticle, User authenticatedUser) {
         IArticleProvider provider = null;
         for( IArticleProvider p : providersWithArticle ) {
             // Short circuiting for peered caches
-            if( clientIsPeer ) {
+            if( authenticatedUser.isCache() ) {
                 if( p.ProviderType() == ConnectionType.LocalCache) {
                     provider = p;
                 }

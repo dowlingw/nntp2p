@@ -1,6 +1,7 @@
 package io.phy.nntp2p.test.tests;
 
 import io.phy.nntp2p.configuration.ConnectionType;
+import io.phy.nntp2p.configuration.User;
 import io.phy.nntp2p.exceptions.ArticleNotFoundException;
 import io.phy.nntp2p.proxy.ArticleProxy;
 import io.phy.nntp2p.proxy.IArticleProvider;
@@ -13,10 +14,14 @@ import java.util.List;
 
 public class ArticleProxyTests {
 
+    private final String TEST_VALID_USERNAME = "derp";
+    private final String TEST_VALID_PASSWORD = "derp";
+
+
     @Test(expected = ArticleNotFoundException.class)
     public void proxyWithoutProvidersDoesNotHaveArticle() throws ArticleNotFoundException {
         ArticleProxy proxy = new ArticleProxy();
-        proxy.GetArticle("somearticlethatdoesnotexist",false);
+        proxy.GetArticle("somearticlethatdoesnotexist",new User("derp","derp",false));
     }
 
     @Test
@@ -25,7 +30,10 @@ public class ArticleProxyTests {
         List<IArticleProvider> peersWithArticle = new ArrayList<>();
         peersWithArticle.add(remoteCache);
 
-        IArticleProvider provider = ArticleProxy.determineProvider(peersWithArticle,true);
+        IArticleProvider provider = ArticleProxy.determineProvider(
+                peersWithArticle,
+                new User(TEST_VALID_USERNAME,TEST_VALID_PASSWORD,true)
+        );
 
         Assert.assertNotEquals(provider,remoteCache);
     }
@@ -39,7 +47,10 @@ public class ArticleProxyTests {
         peersWithArticle.add(localCache);
         peersWithArticle.add(remoteCache);
 
-        IArticleProvider provider = ArticleProxy.determineProvider(peersWithArticle,false);
+        IArticleProvider provider = ArticleProxy.determineProvider(
+                peersWithArticle,
+                new User(TEST_VALID_USERNAME,TEST_VALID_PASSWORD,false)
+        );
 
         Assert.assertEquals(provider, localCache);
     }
@@ -53,7 +64,10 @@ public class ArticleProxyTests {
         peersWithArticle.add(primarySource);
         peersWithArticle.add(remoteCache);
 
-        IArticleProvider provider = ArticleProxy.determineProvider(peersWithArticle,false);
+        IArticleProvider provider = ArticleProxy.determineProvider(
+                peersWithArticle,
+                new User(TEST_VALID_USERNAME,TEST_VALID_PASSWORD,false)
+        );
 
         Assert.assertEquals(provider,remoteCache);
     }
@@ -68,7 +82,10 @@ public class ArticleProxyTests {
         peersWithArticle.add(primaryPeer);
         peersWithArticle.add(backupSource);
 
-        IArticleProvider provider = ArticleProxy.determineProvider(peersWithArticle,false);
+        IArticleProvider provider = ArticleProxy.determineProvider(
+                peersWithArticle,
+                new User(TEST_VALID_USERNAME,TEST_VALID_PASSWORD,false)
+        );
 
         Assert.assertEquals(provider,primaryPeer);
     }

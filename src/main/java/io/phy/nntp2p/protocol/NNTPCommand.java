@@ -24,8 +24,4 @@ public enum NNTPCommand {
     STAT,
     BODY,
     ARTICLE,
-
-    // TODO: Remove this command by implementing Authentication
-    // RFC3977 extensions provided by NNTP2P
-    PEER,
 }

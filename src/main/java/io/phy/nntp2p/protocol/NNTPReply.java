@@ -13,11 +13,14 @@ public enum NNTPReply {
     ARTICLE_RETRIEVED_BODY_FOLLOWS (222),
     ARTICLE_RETRIEVED_REQUEST_TEXT_SEPARATELY (223),
     AUTHENTICATION_ACCEPTED (281),
-    MORE_AUTH_INFO_REQUIRED (381),
+    PASSWORD_REQUIRED(381),
     NO_SUCH_ARTICLE_FOUND (430),
+    AUTHENTICATION_REQUIRED (480),
+    AUTH_REJECTED (481),
+    AUTH_OUT_OF_SEQUENCE (482),
     COMMAND_NOT_RECOGNIZED (500),
     COMMAND_SYNTAX_ERROR (501),
-    PERMISSION_DENIED (502);
+    COMMAND_UNAVAILABLE(502);
     ;
 
     // Allow reverse lookups
@@ -90,8 +93,6 @@ public enum NNTPReply {
 //    public static final int ARTICLE_REJECTED                   = 437;
 //    public static final int POSTING_NOT_ALLOWED                = 440;
 //    public static final int POSTING_FAILED                     = 441;
-//    public static final int AUTHENTICATION_REQUIRED            = 480;
-//    public static final int AUTHENTICATION_REJECTED            = 482;
 //    public static final int COMMAND_NOT_RECOGNIZED             = 500;
 //    public static final int COMMAND_SYNTAX_ERROR               = 501;
 
