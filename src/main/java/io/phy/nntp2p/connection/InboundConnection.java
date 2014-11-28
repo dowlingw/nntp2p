@@ -1,30 +1,34 @@
 package io.phy.nntp2p.connection;
 
+import io.phy.nntp2p.commands.AuthinfoCommand;
+import io.phy.nntp2p.commands.BodyCommand;
+import io.phy.nntp2p.commands.ICommandImplementation;
+import io.phy.nntp2p.commands.QuitCommand;
 import io.phy.nntp2p.configuration.User;
-import io.phy.nntp2p.exceptions.ArticleNotFoundException;
 import io.phy.nntp2p.exceptions.NntpUnknownCommandException;
-import io.phy.nntp2p.protocol.Article;
 import io.phy.nntp2p.protocol.ClientCommand;
 import io.phy.nntp2p.protocol.NNTPReply;
 import io.phy.nntp2p.protocol.ServerResponse;
 import io.phy.nntp2p.proxy.ArticleProxy;
 import io.phy.nntp2p.proxy.UserRepository;
+import org.apache.jcs.access.exception.InvalidArgumentException;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.List;
+import java.util.HashMap;
 import java.util.logging.Logger;
 
 public class InboundConnection extends BaseConnection implements Runnable
 {
     private ArticleProxy proxy;
-
-    private boolean listening = true;
-
     private UserRepository userRepository;
-    private User authenticatedAs;
 
-    private String userSpecified;   // TODO: Can't we store state better?
+    /*
+     CONNECTION STATE VARIABLES
+    */
+    private boolean exiting = false;
+    private User authenticatedAs = null;
+    private String userSpecified = null;    // TODO: Track this one better?
 
     protected final static Logger log = Logger.getLogger(InboundConnection.class.getName());
 
@@ -34,27 +38,39 @@ public class InboundConnection extends BaseConnection implements Runnable
         this.userRepository = userRepository;
         this.proxy = proxy;
 
-        // Start off as not authenticated
-        authenticatedAs = null;
+        // TODO: No, really... wtf
+        try {
+            RegisterCommandClass(AuthinfoCommand.class);
+            RegisterCommandClass(BodyCommand.class);
+            RegisterCommandClass(QuitCommand.class);
+        } catch (InvalidArgumentException e) {
+            exiting = true;
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void run() {
         try {
-            // First thing we have to do is publish a welcome message!
-            WriteData(new ServerResponse(NNTPReply.SERVER_READY_POSTING_NOT_ALLOWED));
+            // Maybe we failed to initialise and need to exit before doing anythin
+            if( exiting ) {
+                WriteData(new ServerResponse(NNTPReply.SERVICE_TEMPORARILY_UNAVAILABLE));
+            } else {
+                // First thing we have to do is publish a welcome message!
+                WriteData(new ServerResponse(NNTPReply.SERVER_READY_POSTING_NOT_ALLOWED));
 
-            while(socket.isConnected() && listening) {
-                ClientCommand command = null;
-                String rawInput = reader.readLineString();
-                if( rawInput == null ) { break; }
-                try {
-                    command = ClientCommand.Parse(rawInput);
-                    DispatchCommand(command);
-                } catch (NntpUnknownCommandException e) {
-                    log.info("Unknown unknown command: "+rawInput);
-                    WriteData(new ServerResponse(NNTPReply.COMMAND_NOT_RECOGNIZED));
-                    continue;
+                while(socket.isConnected() && !exiting) {
+                    ClientCommand command = null;
+                    String rawInput = reader.readLineString();
+                    if( rawInput == null ) { break; }
+                    try {
+                        command = ClientCommand.Parse(rawInput);
+                        DispatchCommand(command);
+                    } catch (NntpUnknownCommandException e) {
+                        log.info("Unknown command: "+rawInput);
+                        WriteData(new ServerResponse(NNTPReply.COMMAND_NOT_RECOGNIZED));
+                        continue;
+                    }
                 }
             }
         } catch (IOException e) {
@@ -70,116 +86,68 @@ public class InboundConnection extends BaseConnection implements Runnable
         }
     }
 
+    // TODO: Make this bean or do it better
+    // Need to get a better idea on how reflection works in Java
+    private HashMap<String,ICommandImplementation> handlers = new HashMap<>();
+    public void RegisterCommandClass(Class classy) throws InvalidArgumentException {
+        // TODO: Check that the class implements ICommandImplementation
+        if( ! ICommandImplementation.class.isAssignableFrom(classy) ) {
+            throw new InvalidArgumentException();
+        }
+        ICommandImplementation instance = null;
+        try {
+            instance = (ICommandImplementation) classy.newInstance();
+            handlers.put(instance.CommandName().toLowerCase(),instance);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to register command module");
+        }
+    }
+
     private void DispatchCommand(ClientCommand command) throws IOException, NntpUnknownCommandException {
 
-        // TODO: Commands and case sensitivity
-        // Sab sends lowercase authinfo user
-
-        // Commands that do not require authentication
-        switch (command.getCommand()) {
-            case QUIT:
-                cmdQuit();
-                break;
-
-            case AUTHINFO:
-                cmdAuthInfo(command);
-                break;
+        // Is the command found?
+        ICommandImplementation handler = handlers.get(command.getCommand().toLowerCase());
+        if( handler == null ) {
+            throw new NntpUnknownCommandException();
         }
 
-        // TODO: Really need to start implementing command classes
-        // Then we can register them and make these decisions intelligently
-        // Also, that will allow us to respond to things like CAPABILITIES
-
-        // Require the user authenticate
-        if( authenticatedAs == null ) {
+        // Don't proceed if the command requires we authenticate
+        if( handler.RequiresAuthentication() && getAuthenticatedAs() == null ) {
             WriteData(new ServerResponse(NNTPReply.AUTHENTICATION_REQUIRED));
             return;
         }
 
-        // Commands that DO require authentication
-        switch (command.getCommand()) {
-            case BODY:
-                cmdBody(command);
-                break;
-
-            default:
-                throw new NntpUnknownCommandException();
-        }
+        // OK, Proceed
+        handler.Handle(this,command);
     }
 
-    private void cmdAuthInfo(ClientCommand command) throws IOException {
-        // RFC 4643
-        if( authenticatedAs != null ) {
-            WriteData(new ServerResponse(NNTPReply.COMMAND_UNAVAILABLE));
-            return;
-        }
-
-        // Check we got the right number of arguments
-        List<String> args = command.getArguments();
-        if( args.size() != 2 ) {
-            WriteData(new ServerResponse(NNTPReply.COMMAND_SYNTAX_ERROR));
-            return;
-        }
-
-        if( args.get(0).equalsIgnoreCase("USER") ) {
-            userSpecified = args.get(1);
-            WriteData(new ServerResponse(NNTPReply.PASSWORD_REQUIRED));
-            return;
-        }
-
-        if( args.get(0).equalsIgnoreCase("USER") ) {
-            if( userSpecified == null ) {
-                WriteData(new ServerResponse(NNTPReply.AUTH_OUT_OF_SEQUENCE));
-                return;
-            }
-
-            User user = userRepository.authenticate(userSpecified,args.get(1));
-            if( user != null ) {
-                authenticatedAs = user;
-                WriteData(new ServerResponse(NNTPReply.AUTHENTICATION_ACCEPTED));
-            } else {
-                WriteData(new ServerResponse(NNTPReply.AUTH_REJECTED));
-            }
-
-            return;
-        }
-
-        // If we hit here, it's invalid!!!
-        WriteData(new ServerResponse(NNTPReply.COMMAND_NOT_RECOGNIZED));
+    // The following methods can be called from command implementations to modify connection state
+    public void setExiting() {
+        exiting = true;
     }
 
-    private void cmdQuit() throws IOException {
-        listening = false;
-        WriteData(new ServerResponse(NNTPReply.CLOSING_CONNECTION));
+    public User getAuthenticatedAs() {
+        return authenticatedAs;
     }
 
-    private void cmdBody(ClientCommand command) throws IOException {
-        // Do some validation over the article
-        if( command.getArguments().size() > 1 ) {
-            log.fine("Invalid ARTICLE request: "+command.ToNntpString());
-            WriteData(new ServerResponse(NNTPReply.COMMAND_SYNTAX_ERROR));
-            return;
-        }
+    public void setAuthenticatedAs(User user) {
+        authenticatedAs = user;
+    }
 
-        String messageId = command.getArguments().get(0);
-        Article articleData;
-        try {
-            articleData = proxy.GetArticle(messageId,authenticatedAs);
-        } catch (ArticleNotFoundException e) {
-            log.fine("ARTICLE not found: " + messageId);
-            WriteData(new ServerResponse(NNTPReply.NO_SUCH_ARTICLE_FOUND));
-            return;
-        }
-        if (articleData == null) {
-            log.fine("BODY got back NULL: " + messageId);
-        }
 
-        // TODO: Have hit a case here where articleData is null
-        ServerResponse response = new ServerResponse(NNTPReply.ARTICLE_RETRIEVED_BODY_FOLLOWS);
-        response.addArg(0);
-        response.addArg(messageId);
+    public String getUserSpecified() {
+        return userSpecified;
+    }
 
-        WriteData(response);
-        WriteArticleBody(articleData);
+    public void setUserSpecified(String userSpecified) {
+        this.userSpecified = userSpecified;
+    }
+
+    public ArticleProxy getProxy() {
+        return proxy;
+    }
+
+    public UserRepository getUserRepository() {
+        return userRepository;
     }
 }

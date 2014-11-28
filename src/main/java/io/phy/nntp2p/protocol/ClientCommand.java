@@ -6,19 +6,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ClientCommand implements NntpProtocolMessage {
-    private NNTPCommand command;
-    private List<String> arguments;
+    private String command;
+    private List<String> arguments = new ArrayList<>();
 
-    public ClientCommand(NNTPCommand command) {
-        arguments = new ArrayList<String>();
+    public ClientCommand(String command) {
         this.command = command;
     }
 
-    public NNTPCommand getCommand() {
+    public ClientCommand(NNTPCommand command) {
+        this.command = command.name();
+    }
+
+    public String getCommand() {
         return command;
     }
 
-    public void setCommand(NNTPCommand command) {
+    public void setCommand(String command) {
         this.command = command;
     }
 
@@ -31,7 +34,7 @@ public class ClientCommand implements NntpProtocolMessage {
     }
 
     public String ToNntpString() {
-        String retString = command.name();
+        String retString = command;
 
         for (String arg : arguments) {
             retString += " " + arg;
@@ -47,15 +50,7 @@ public class ClientCommand implements NntpProtocolMessage {
             throw new IllegalThreadStateException("wahh");
         }
 
-        // See if the command is one we know about
-        NNTPCommand command;
-        try {
-            command = NNTPCommand.valueOf(data[0]);
-        } catch (IllegalArgumentException e) {
-            throw new NntpUnknownCommandException();
-        }
-
-        ClientCommand clientCommand = new ClientCommand(command);
+        ClientCommand clientCommand = new ClientCommand(data[0]);
         for (int i=1; i<data.length; i++ ) {
             clientCommand.arguments.add(data[i]);
         }
