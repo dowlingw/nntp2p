@@ -1,0 +1,75 @@
+<!--
+
+NNT2P Example Configuration
+
+Please take a moment to read the following before making
+
+    USER CONFIGURATION
+    This section defines users that are allowed to connect to the
+    cache. There are two types of user:
+
+        CLIENT - This is a newsreader at the end user, you want to
+        use this for regular users. These users will be able to
+        retrieve articles from caches, as well as upstream servers
+        configured later.
+
+        CACHE - Use this account type for another NNTP2P cache
+        instance. This user will only be able to retrieve content
+        from the local cache.
+
+    SERVER CONFIGURATION
+    This section defines remote NNTP servers which the proxy can
+    connect to and retrieve articles. There are three types:
+
+        CACHE - This is another NNTP2P or other caching usenet
+        proxy instance. If the inbuilt cache does not have an
+        article, caches configured here will be preferred.
+
+        PRIMARY - This is a regular NNTP server that you would
+        normally connect to directly with your newsreader.
+
+        BACKUP - The same as PRIMARY above, however will not be
+        used unless an article cannot be found on any configured
+        primary servers.
+
+    Each configured cache has the following configuration options
+    that should be configured appropriately:
+
+        TYPE - The type of server, see explanation above.
+
+        CONNECTIONS - The maximum number of connections to open
+        to this server at any given time.
+
+        HOST - The hostname or IP of the NNTP server to connect to
+
+        PORT - The port of the NNTP server to connect to. Usually
+        this is 563 for SSL connections or 119 otherwise.
+
+        SSL - Whether or not to use SSL when connecting to the NNTP
+
+    If the remote server does not require a username or password,
+    these can be omitted as per the example below
+
+-->
+<nntp2p>
+    <proxy>
+        <listenport>563</listenport>
+    </proxy>
+    <users>
+        <!--A newsreader application that is going to connect-->
+        <client username="notsab" password="nntp2pftw" />
+        <!--A friendly neighbourhood instance of NNTP2P-->
+        <cache username="woody" password="sheriff" />
+    </users>
+    <servers>
+        <!--An account on your ISPs NNTP service that does not require a password-->
+        <server type="primary" connections="5" host="news.giganews.com" port="119" ssl="false" />
+        <!--Our friendly neighbourhood NNTP2P instance again-->
+        <server type="cache" connections="20" host="10.0.13.37" port="563" ssl="true">
+            <credentials>
+                <username>buzz</username>
+                <password>spaceman</password>
+            </credentials>
+        </server>
+    </servers>
+</nntp2p>

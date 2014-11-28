@@ -12,6 +12,7 @@
         <pool2.version>2.2</pool2.version>
         <junit-test.version>4.11</junit-test.version>
         <jcs.version>1.3</jcs.version>
+        <config.version>1.10</config.version>
     </properties>
 
     <dependencies>
@@ -33,6 +34,12 @@
             <groupId>org.apache.jcs</groupId>
             <artifactId>jcs</artifactId>
             <version>${jcs.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
+            <version>${config.version}</version>
         </dependency>
 
         <dependency>
