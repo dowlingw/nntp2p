@@ -19,11 +19,13 @@ public class Application {
 
     protected final static Logger log = Logger.getLogger(Application.class.getName());
 
+    private Integer listenPort;
     private ArticleProxy proxy;
     private UserRepository users;
 
-    public Application(UserRepository users, List<ServerConfigurationItem> outboundPeerConfiguration) throws InvalidObjectException {
+    public Application(Integer listenPort, UserRepository users, List<ServerConfigurationItem> outboundPeerConfiguration) throws InvalidObjectException {
         this.users = users;
+        this.listenPort = listenPort;
 
         // Configured NNTP Servers
         proxy = new ArticleProxy();
@@ -39,7 +41,7 @@ public class Application {
 
     public void RunApplication() throws IOException {
         ServerSocketFactory factory = ServerSocketFactory.getDefault();
-        ServerSocket listenSocket = factory.createServerSocket(1337);
+        ServerSocket listenSocket = factory.createServerSocket(listenPort);
 
         // Spawn a new thread for each incoming connection
         while (true) {

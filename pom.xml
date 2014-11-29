@@ -41,6 +41,12 @@
             <artifactId>commons-configuration</artifactId>
             <version>${config.version}</version>
         </dependency>
+        <!--This SHOULD be listed as a dependency under commons-configuration-->
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>3.2.1</version>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>

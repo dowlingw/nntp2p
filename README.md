@@ -21,12 +21,9 @@ This is a work in progress, the following items are on the immediate horizon
 
 * Version 1.0
   - Add SSL support for inbound clients
-  - Add authentication for clients
-    - Move cache flag into user profile
-    - Usage tracking
-  - Configuration
+  - User accounting
 * Detect missing articles
-* Preseeding NZB interface
+* Article preseeding interface
 * Cache loop detection?
 * Automatic cache discovery
 

@@ -38,7 +38,8 @@ Please take a moment to read the following before making
         TYPE - The type of server, see explanation above.
 
         CONNECTIONS - The maximum number of connections to open
-        to this server at any given time.
+        to this server at any given time. Important: This value
+        must be at least 2.
 
         HOST - The hostname or IP of the NNTP server to connect to
 
@@ -57,13 +58,13 @@ Please take a moment to read the following before making
     </proxy>
     <users>
         <!--A newsreader application that is going to connect-->
-        <client username="notsab" password="nntp2pftw" />
+        <user type="client" username="notsab" password="nntp2pftw" />
         <!--A friendly neighbourhood instance of NNTP2P-->
-        <cache username="woody" password="sheriff" />
+        <user type="cache" username="woody" password="sheriff" />
     </users>
     <servers>
         <!--An account on your ISPs NNTP service that does not require a password-->
-        <server type="primary" connections="5" host="news.giganews.com" port="119" ssl="false" />
+        <server type="primary" connections="5" host="news.example.com" port="119" ssl="false" />
         <!--Our friendly neighbourhood NNTP2P instance again-->
         <server type="cache" connections="20" host="10.0.13.37" port="563" ssl="true">
             <credentials>

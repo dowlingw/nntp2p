@@ -13,3 +13,6 @@ target/
 *.ipr
 *.iws
 *.iml
+
+# Never check in a real config
+config.xml
