@@ -4,6 +4,26 @@ NNT2P Example Configuration
 
 Please take a moment to read the following before making
 
+    PROXY CONFIGURATION
+    All the fields in this section dictate the functioning of the
+    NNTP2P proxy-cache, and are mandatory.
+
+        LISTENPORT - This is the port that the NNTP2P will listen
+        on for incoming NNTP connections. Please note that in
+        future versions, only SSL connections will be allowed.
+
+        MEMLIMIT - This is the maximum number of articles to attempt
+        to cache in memory. Most usenet servers have an article size
+        limit around 15-20 MiB, so to set a limit of approximately
+        1 GiB, you would set this value to 1024/15=69.
+
+        DISKPATH - The path to a folder on disk used for the cache,
+        this folder must exist.
+
+        DISKLIMIT - The size in GiB to limit the disk cache to as a
+        number (eg: 10). Please be aware that housekeeping data also
+        stored in this location does not count towards the limit.
+
     USER CONFIGURATION
     This section defines users that are allowed to connect to the
     cache. There are two types of user:
@@ -55,6 +75,9 @@ Please take a moment to read the following before making
 <nntp2p>
     <proxy>
         <listenport>563</listenport>
+        <memlimit>35</memlimit>
+        <diskpath>/var/nntp2p/</diskpath>
+        <disklimit>10</disklimit>
     </proxy>
     <users>
         <!--A newsreader application that is going to connect-->

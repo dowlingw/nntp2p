@@ -1,5 +1,6 @@
 package io.phy.nntp2p.connection;
 
+import com.sun.javaws.exceptions.InvalidArgumentException;
 import io.phy.nntp2p.commands.AuthinfoCommand;
 import io.phy.nntp2p.commands.BodyCommand;
 import io.phy.nntp2p.commands.ICommandImplementation;
@@ -11,7 +12,6 @@ import io.phy.nntp2p.protocol.NNTPReply;
 import io.phy.nntp2p.protocol.ServerResponse;
 import io.phy.nntp2p.proxy.ArticleProxy;
 import io.phy.nntp2p.proxy.UserRepository;
-import org.apache.jcs.access.exception.InvalidArgumentException;
 
 import java.io.*;
 import java.net.Socket;
@@ -43,7 +43,7 @@ public class InboundConnection extends BaseConnection implements Runnable
             RegisterCommandClass(AuthinfoCommand.class);
             RegisterCommandClass(BodyCommand.class);
             RegisterCommandClass(QuitCommand.class);
-        } catch (InvalidArgumentException e) {
+        } catch (InvalidClassException e) {
             exiting = true;
             e.printStackTrace();
         }
@@ -89,9 +89,9 @@ public class InboundConnection extends BaseConnection implements Runnable
     // TODO: Make this bean or do it better
     // Need to get a better idea on how reflection works in Java
     private HashMap<String,ICommandImplementation> handlers = new HashMap<>();
-    public void RegisterCommandClass(Class classy) throws InvalidArgumentException {
+    public void RegisterCommandClass(Class classy) throws InvalidClassException {
         if( ! ICommandImplementation.class.isAssignableFrom(classy) ) {
-            throw new InvalidArgumentException();
+            throw new InvalidClassException("Must implement ICommandImplementation");
         }
         ICommandImplementation instance = null;
         try {

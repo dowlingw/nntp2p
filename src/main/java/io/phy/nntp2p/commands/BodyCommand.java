@@ -32,7 +32,16 @@ public class BodyCommand implements ICommandImplementation {
             return;
         }
 
+        // TODO: We only really support one variant of BODY, we should properly support the others
         String messageId = command.getArguments().get(0);
+        if( ! messageId.startsWith("<") || ! messageId.endsWith(">") ) {
+            connection.WriteData(new ServerResponse(NNTPReply.COMMAND_UNAVAILABLE));
+            return;
+        }
+
+        // TODO: This is a hack!
+        messageId = messageId.substring(1,messageId.length()-1);
+
         Article articleData;
         try {
             articleData = connection.getProxy().GetArticle(messageId,connection.getAuthenticatedAs());

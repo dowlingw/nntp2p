@@ -27,7 +27,7 @@ import java.util.logging.Logger;
  */
 public class NntpArticleProvider implements IArticleProvider {
 
-    private final static long MAX_POOL_WAIT_TIME = 100L;
+    private final static long MAX_POOL_WAIT_TIME = 10000L;
 
     private ServerConfigurationItem _config;
     private GenericObjectPool<OutboundConnection> _pool;

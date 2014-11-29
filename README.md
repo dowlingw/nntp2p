@@ -20,8 +20,12 @@ Feature Roadmap
 This is a work in progress, the following items are on the immediate horizon
 
 * Version 1.0
-  - Add SSL support for inbound clients
-  - User accounting
+    - Make cache writes happen asynchronously in another thread
+    - Enforce cache disk limit
+    - Add SSL support for inbound clients
+    - User accounting
+* Address pool timeouts/etc
+* Modify `resolveProvider()` to return an execution plan (ordered list) instead of single source
 * Detect missing articles
 * Article preseeding interface
 * Cache loop detection?

@@ -5,6 +5,7 @@ import io.phy.nntp2p.configuration.PasswordCredential;
 import io.phy.nntp2p.configuration.ServerConfigurationItem;
 import io.phy.nntp2p.configuration.User;
 import io.phy.nntp2p.proxy.UserRepository;
+import io.phy.nntp2p.proxy.provider.cache.LocalCache;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
@@ -81,8 +82,23 @@ public class EntryPoint {
         // Oh, and the listen port... that's kind of important
         Integer listenPort = config.getInt("proxy.listenport",119);
 
+        // Parse the cache options
+        Integer cacheMemoryArticleLimit = config.getInt("proxy.memlimit");
+        String cacheDiskLocation = config.getString("proxy.diskpath");
+        Integer cacheDiskSizeLimit = config.getInt("proxy.disklimit");
+
+        // Okay lets instantiate and configure the cache instance
+        LocalCache cache = new LocalCache(cacheMemoryArticleLimit,cacheDiskLocation,cacheDiskSizeLimit);
+        try {
+            cache.initialise();
+        } catch (Exception e) {
+            // TODO: Be less shit, as usual...
+            e.printStackTrace();
+            return;
+        }
+
         // Spin up the application
-        Application app = new Application(listenPort,users,peers);
+        Application app = new Application(cache,listenPort,users,peers);
         app.RunApplication();
     }
 

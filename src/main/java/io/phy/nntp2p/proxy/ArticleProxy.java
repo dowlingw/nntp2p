@@ -63,7 +63,7 @@ public class ArticleProxy {
     public Article GetArticle(String messageId, User authenticatedUser) throws ArticleNotFoundException {
         IArticleProvider provider = resolveProvider(messageId, authenticatedUser);
         if( provider == null ) {
-            log.info("No provider found with article!");
+            log.info(String.format("No provider found with messageId=%s",messageId));
             throw new ArticleNotFoundException();
         }
 
@@ -71,7 +71,9 @@ public class ArticleProxy {
         Article article = provider.GetArticle(messageId);
         if( article != null ) {
             for (IArticleCache cache : caches) {
-                cache.CacheArticle(article);
+                if( ! cache.HasArticle(messageId) ) {
+                    cache.CacheArticle(article);
+                }
             }
         }
 
@@ -86,7 +88,7 @@ public class ArticleProxy {
      */
     private IArticleProvider resolveProvider(String messageId, User authenticatedUser) {
         // Generate the list of jobs to run
-        List<ArticleCheckJob> jobs = new ArrayList<ArticleCheckJob>();
+        List<ArticleCheckJob> jobs = new ArrayList<>();
         for ( IArticleProvider provider : providers ) {
             jobs.add(new ArticleCheckJob(provider,messageId));
         }

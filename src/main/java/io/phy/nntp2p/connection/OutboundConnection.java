@@ -79,7 +79,7 @@ public class OutboundConnection extends BaseConnection implements IArticleProvid
     @Override
     public boolean HasArticle(String messageId) throws InternalError {
         ClientCommand upstreamStat = new ClientCommand(NNTPCommand.STAT);
-        upstreamStat.getArguments().add(messageId);
+        upstreamStat.getArguments().add(String.format("<%s>",messageId));
 
         try {
             WriteData(upstreamStat);
@@ -97,7 +97,7 @@ public class OutboundConnection extends BaseConnection implements IArticleProvid
     @Override
     public Article GetArticle(String messageId) {
         ClientCommand upstreamStat = new ClientCommand(NNTPCommand.ARTICLE);
-        upstreamStat.getArguments().add(messageId);
+        upstreamStat.getArguments().add(String.format("<%s>",messageId));
 
         try {
             WriteData(upstreamStat);

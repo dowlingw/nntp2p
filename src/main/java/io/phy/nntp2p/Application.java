@@ -24,7 +24,7 @@ public class Application {
     private ArticleProxy proxy;
     private UserRepository users;
 
-    public Application(Integer listenPort, UserRepository users, List<ServerConfigurationItem> outboundPeerConfiguration) throws InvalidObjectException {
+    public Application(LocalCache cache, Integer listenPort, UserRepository users, List<ServerConfigurationItem> outboundPeerConfiguration) throws InvalidObjectException {
         this.users = users;
         this.listenPort = listenPort;
 
@@ -36,8 +36,7 @@ public class Application {
         }
 
         // Register the local cache
-        LocalCache localCache = new LocalCache();
-        proxy.RegisterCache(localCache);
+        proxy.RegisterCache(cache);
     }
 
     public void RunApplication() throws IOException {
