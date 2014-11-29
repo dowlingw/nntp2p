@@ -90,7 +90,6 @@ public class InboundConnection extends BaseConnection implements Runnable
     // Need to get a better idea on how reflection works in Java
     private HashMap<String,ICommandImplementation> handlers = new HashMap<>();
     public void RegisterCommandClass(Class classy) throws InvalidArgumentException {
-        // TODO: Check that the class implements ICommandImplementation
         if( ! ICommandImplementation.class.isAssignableFrom(classy) ) {
             throw new InvalidArgumentException();
         }

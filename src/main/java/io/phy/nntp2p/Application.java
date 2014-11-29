@@ -19,6 +19,7 @@ public class Application {
 
     protected final static Logger log = Logger.getLogger(Application.class.getName());
 
+    // TODO: If not DI, some kind of configuration source
     private Integer listenPort;
     private ArticleProxy proxy;
     private UserRepository users;

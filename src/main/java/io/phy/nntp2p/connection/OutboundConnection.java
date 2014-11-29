@@ -53,7 +53,6 @@ public class OutboundConnection extends BaseConnection implements IArticleProvid
                 WriteData(sendUsername);
                 ServerResponse sendUsernameResponse = ServerResponse.Parse(reader);
 
-                // TODO: Support AUTHINFO fully
                 if( sendUsernameResponse.getResponseCode() != NNTPReply.PASSWORD_REQUIRED) {
                     is_valid = false;
                     return;
@@ -66,7 +65,6 @@ public class OutboundConnection extends BaseConnection implements IArticleProvid
                 WriteData(sendPassword);
                 ServerResponse sendPasswordResponse = ServerResponse.Parse(reader);
 
-                // TODO: Support AUTHINFO properly
                 if( sendPasswordResponse.getResponseCode() != NNTPReply.AUTHENTICATION_ACCEPTED ) {
                     is_valid = false;
                     return;                }

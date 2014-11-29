@@ -21,6 +21,8 @@ public class EntryPoint {
         List<ServerConfigurationItem> peers = new ArrayList<>();
         UserRepository users = new UserRepository();
 
+        // TODO: Move configuration parsing out of here
+
         // Load us some configuration
         XMLConfiguration config;
         try {
