@@ -1,5 +1,6 @@
 package io.phy.nntp2p.commands;
 
+import io.phy.nntp2p.connection.ConnectionState;
 import io.phy.nntp2p.connection.InboundConnection;
 import io.phy.nntp2p.protocol.ClientCommand;
 import io.phy.nntp2p.protocol.NNTPReply;
@@ -19,8 +20,8 @@ public class QuitCommand implements ICommandImplementation {
     }
 
     @Override
-    public void Handle(InboundConnection connection, ClientCommand command) throws IOException {
-        connection.setExiting();
-        connection.WriteData(new ServerResponse(NNTPReply.CLOSING_CONNECTION));
+    public void Handle(InboundConnection socket, ConnectionState state, ClientCommand command) throws IOException {
+        state.setQuitting(true);
+        socket.WriteData(new ServerResponse(NNTPReply.CLOSING_CONNECTION));
     }
 }

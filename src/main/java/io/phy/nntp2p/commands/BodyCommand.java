@@ -1,5 +1,6 @@
 package io.phy.nntp2p.commands;
 
+import io.phy.nntp2p.connection.ConnectionState;
 import io.phy.nntp2p.connection.InboundConnection;
 import io.phy.nntp2p.exceptions.ArticleNotFoundException;
 import io.phy.nntp2p.protocol.Article;
@@ -24,18 +25,18 @@ public class BodyCommand implements ICommandImplementation {
     }
 
     @Override
-    public void Handle(InboundConnection connection, ClientCommand command) throws IOException {
+    public void Handle(InboundConnection socket, ConnectionState state, ClientCommand command) throws IOException {
         // Do some validation over the article
         if( command.getArguments().size() > 1 ) {
-            log.fine("Invalid ARTICLE request: "+command.ToNntpString());
-            connection.WriteData(new ServerResponse(NNTPReply.COMMAND_SYNTAX_ERROR));
+            log.fine("Invalid ARTICLE request: " + command.ToNntpString());
+            socket.WriteData(new ServerResponse(NNTPReply.COMMAND_SYNTAX_ERROR));
             return;
         }
 
         // TODO: We only really support one variant of BODY, we should properly support the others
         String messageId = command.getArguments().get(0);
         if( ! messageId.startsWith("<") || ! messageId.endsWith(">") ) {
-            connection.WriteData(new ServerResponse(NNTPReply.COMMAND_UNAVAILABLE));
+            socket.WriteData(new ServerResponse(NNTPReply.COMMAND_UNAVAILABLE));
             return;
         }
 
@@ -44,10 +45,10 @@ public class BodyCommand implements ICommandImplementation {
 
         Article articleData;
         try {
-            articleData = connection.getProxy().GetArticle(messageId,connection.getAuthenticatedAs());
+            articleData = socket.getProxy().GetArticle(messageId, state.getAuthenticatedUser());
         } catch (ArticleNotFoundException e) {
             log.fine("ARTICLE not found: " + messageId);
-            connection.WriteData(new ServerResponse(NNTPReply.NO_SUCH_ARTICLE_FOUND));
+            socket.WriteData(new ServerResponse(NNTPReply.NO_SUCH_ARTICLE_FOUND));
             return;
         }
         if (articleData == null) {
@@ -59,7 +60,7 @@ public class BodyCommand implements ICommandImplementation {
         response.addArg(0);
         response.addArg(messageId);
 
-        connection.WriteData(response);
-        connection.WriteArticleBody(articleData);
+        socket.WriteData(response);
+        socket.WriteArticleBody(articleData);
     }
 }
