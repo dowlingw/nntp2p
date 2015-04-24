@@ -4,7 +4,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import io.phy.nntp2p.configuration.ConnectionType;
-import io.phy.nntp2p.protocol.Article;
+import io.phy.nntp2p.common.Article;
 import io.phy.nntp2p.proxy.provider.IArticleCache;
 import liquibase.Contexts;
 import liquibase.Liquibase;

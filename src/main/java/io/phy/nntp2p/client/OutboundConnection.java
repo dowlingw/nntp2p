@@ -1,8 +1,9 @@
 package io.phy.nntp2p.client;
 
-import io.phy.nntp2p.client.ClientCommand;
+import io.phy.nntp2p.common.Article;
 import io.phy.nntp2p.configuration.ConnectionType;
 import io.phy.nntp2p.configuration.ServerConfigurationItem;
+import io.phy.nntp2p.common.Channel;
 import io.phy.nntp2p.exceptions.NntpUnknownResponseException;
 import io.phy.nntp2p.protocol.*;
 import io.phy.nntp2p.proxy.IArticleProvider;
@@ -10,17 +11,13 @@ import io.phy.nntp2p.proxy.IArticleProvider;
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 
 public class OutboundConnection implements IArticleProvider {
     private ServerConfigurationItem configuration;
-
-    private Socket clientSocket;
+    private Channel channel;
+    protected boolean is_valid = true;
 
     public OutboundConnection(ServerConfigurationItem configuration) {
         this.configuration = configuration;
@@ -30,61 +27,24 @@ public class OutboundConnection implements IArticleProvider {
         return configuration;
     }
 
-    protected Socket socket;
-
-    private static final byte[] CRLF = {0x0D, 0x0A};
-
-    protected NntpDecoder reader;
-    protected BufferedWriter writer;
-
-    private OutputStreamWriter osWriter;
-
-    protected boolean is_valid = true;
-
-    protected void BindToSocket(Socket underlyingSocket) throws IOException {
-        socket = underlyingSocket;
-
-        osWriter = new OutputStreamWriter(socket.getOutputStream());
-
-        reader = new NntpDecoder(socket.getInputStream(), StandardCharsets.UTF_8);
-        writer = new BufferedWriter(osWriter);
-    }
-
-    public void WriteData(NntpProtocolMessage data) throws IOException {
-        writer.write(data.ToNntpString());
-        writeByteArray(CRLF);
-        writer.flush();
-    }
-
-    private void writeByteArray(byte[] data) throws IOException {
-        writer.flush();
-        synchronized (osWriter) {
-            OutputStream outputStream = socket.getOutputStream();
-            synchronized (outputStream) {
-                outputStream.write(data);
-                outputStream.flush();
-            }
-        }
-    }
-
     public boolean isValid() {
         return is_valid;
     }
 
     public void Connect() throws IOException {
         SocketFactory factory = configuration.isUseSsl() ? SSLSocketFactory.getDefault() : SocketFactory.getDefault();
-        clientSocket = factory.createSocket(configuration.getHostname(),configuration.getPort());
+        Socket clientSocket = factory.createSocket(configuration.getHostname(), configuration.getPort());
 
         // If SSL, do a handshake
         if( configuration.isUseSsl() ) {
             ((SSLSocket)clientSocket).startHandshake();
         }
 
-        BindToSocket(clientSocket);
+        channel = new Channel(clientSocket);
         try {
 
             // Read server advertisement
-            ServerResponse advertisement = ServerResponse.Parse(reader);
+            NntpServerReply advertisement = NntpDecoder.Parse(channel);
             if( ! advertisement.getResponseCode().isPositiveCompletion() ) {
                 is_valid = false;
                 return;
@@ -92,26 +52,26 @@ public class OutboundConnection implements IArticleProvider {
 
             // Always attempt authentication
             if( configuration.getCredentials() != null ) {
-                ClientCommand sendUsername = new ClientCommand(NntpCommand.AUTHINFO);
+                NntpClientCommand sendUsername = new NntpClientCommand(NntpClientCommandType.AUTHINFO);
                 sendUsername.getArguments().add("USER");
                 sendUsername.getArguments().add(configuration.getCredentials().getUsername());
 
-                WriteData(sendUsername);
-                ServerResponse sendUsernameResponse = ServerResponse.Parse(reader);
+                NntpEncoder.WriteData(channel,sendUsername);
+                NntpServerReply sendUsernameResponse = NntpDecoder.Parse(channel);
 
-                if( sendUsernameResponse.getResponseCode() != NntpReply.PASSWORD_REQUIRED) {
+                if( sendUsernameResponse.getResponseCode() != NntpServerReplyType.PASSWORD_REQUIRED) {
                     is_valid = false;
                     return;
                 }
 
-                ClientCommand sendPassword = new ClientCommand(NntpCommand.AUTHINFO);
+                NntpClientCommand sendPassword = new NntpClientCommand(NntpClientCommandType.AUTHINFO);
                 sendPassword.getArguments().add("PASS");
                 sendPassword.getArguments().add(configuration.getCredentials().getPassword());
 
-                WriteData(sendPassword);
-                ServerResponse sendPasswordResponse = ServerResponse.Parse(reader);
+                NntpEncoder.WriteData(channel, sendPassword);
+                NntpServerReply sendPasswordResponse = NntpDecoder.Parse(channel);
 
-                if( sendPasswordResponse.getResponseCode() != NntpReply.AUTHENTICATION_ACCEPTED ) {
+                if( sendPasswordResponse.getResponseCode() != NntpServerReplyType.AUTHENTICATION_ACCEPTED ) {
                     is_valid = false;
                     return;                }
             }
@@ -124,13 +84,13 @@ public class OutboundConnection implements IArticleProvider {
 
     @Override
     public boolean HasArticle(String messageId) throws InternalError {
-        ClientCommand upstreamStat = new ClientCommand(NntpCommand.STAT);
-        upstreamStat.getArguments().add(String.format("<%s>",messageId));
+        NntpClientCommand request = new NntpClientCommand(NntpClientCommandType.STAT);
+        request.getArguments().add(String.format("<%s>",messageId));
 
         try {
-            WriteData(upstreamStat);
-            ServerResponse response = ServerResponse.Parse(reader);
-            return (response.getResponseCode() == NntpReply.ARTICLE_RETRIEVED_REQUEST_TEXT_SEPARATELY);
+            NntpEncoder.WriteData(channel,request);
+            NntpServerReply response = NntpDecoder.Parse(channel);
+            return (response.getResponseCode() == NntpServerReplyType.ARTICLE_RETRIEVED_REQUEST_TEXT_SEPARATELY);
 
         } catch (IOException e) {
             // TODO: Handle this
@@ -142,20 +102,20 @@ public class OutboundConnection implements IArticleProvider {
 
     @Override
     public Article GetArticle(String messageId) {
-        ClientCommand upstreamStat = new ClientCommand(NntpCommand.ARTICLE);
-        upstreamStat.getArguments().add(String.format("<%s>",messageId));
+        NntpClientCommand request = new NntpClientCommand(NntpClientCommandType.ARTICLE);
+        request.getArguments().add(String.format("<%s>",messageId));
 
         try {
-            WriteData(upstreamStat);
-            ServerResponse response = ServerResponse.Parse(reader);
-            if( response.getResponseCode() != NntpReply.ARTICLE_RETRIEVED_HEAD_AND_BODY_FOLLOW ) {
+            NntpEncoder.WriteData(channel, request);
+            NntpServerReply response = NntpDecoder.Parse(channel);
+            if( response.getResponseCode() != NntpServerReplyType.ARTICLE_RETRIEVED_HEAD_AND_BODY_FOLLOW ) {
                 // TODO: No no no
                 return null;
             }
 
             // Read headers
-            byte[] headerBytes = ServerResponse.ReadMultiLine(reader,true);
-            byte[] dataBytes = ServerResponse.ReadMultiLine(reader,false);
+            byte[] headerBytes = NntpDecoder.ReadMultiLine(channel, true);
+            byte[] dataBytes = NntpDecoder.ReadMultiLine(channel, false);
 
             return new Article(messageId, headerBytes,dataBytes);
 

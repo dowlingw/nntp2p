@@ -1,8 +1,8 @@
-package io.phy.nntp2p.connection;
+package io.phy.nntp2p.server;
 
 import io.phy.nntp2p.configuration.User;
 
-public class ConnectionState {
+public class ClientState {
     private User authenticatedUser;
     private String authinfoUser;
     private boolean quitting = false;

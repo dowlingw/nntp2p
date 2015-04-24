@@ -1,7 +1,7 @@
 package io.phy.nntp2p.test.impl;
 
 import io.phy.nntp2p.configuration.ConnectionType;
-import io.phy.nntp2p.protocol.Article;
+import io.phy.nntp2p.common.Article;
 import io.phy.nntp2p.proxy.IArticleProvider;
 
 public class DummyArticleProvider implements IArticleProvider {

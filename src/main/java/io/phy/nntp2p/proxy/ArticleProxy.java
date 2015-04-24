@@ -3,7 +3,7 @@ package io.phy.nntp2p.proxy;
 import io.phy.nntp2p.configuration.ConnectionType;
 import io.phy.nntp2p.configuration.User;
 import io.phy.nntp2p.exceptions.ArticleNotFoundException;
-import io.phy.nntp2p.protocol.Article;
+import io.phy.nntp2p.common.Article;
 import io.phy.nntp2p.proxy.provider.IArticleCache;
 
 import java.util.ArrayList;

@@ -1,17 +1,15 @@
-package io.phy.nntp2p.connection;
-
-import io.phy.nntp2p.protocol.NntpDecoder;
+package io.phy.nntp2p.common;
 
 import java.io.BufferedWriter;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 
 public class Channel {
     private Socket socket;
     private OutputStreamWriter osWriter;
-    private NntpDecoder reader;
+    private DataInputStream reader;
     private BufferedWriter writer;
 
     public Channel(Socket socket) throws IOException {
@@ -19,7 +17,7 @@ public class Channel {
 
         osWriter = new OutputStreamWriter(socket.getOutputStream());
 
-        reader = new NntpDecoder(socket.getInputStream(), StandardCharsets.UTF_8);
+        reader = new DataInputStream(socket.getInputStream());
         writer = new BufferedWriter(osWriter);
     }
 
@@ -27,7 +25,7 @@ public class Channel {
         return socket;
     }
 
-    public NntpDecoder getReader() {
+    public DataInputStream getReader() {
         return reader;
     }
 

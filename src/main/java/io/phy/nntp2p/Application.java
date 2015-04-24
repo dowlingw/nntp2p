@@ -4,7 +4,7 @@ import io.phy.nntp2p.server.command.AuthinfoCommand;
 import io.phy.nntp2p.server.command.BodyCommand;
 import io.phy.nntp2p.server.command.QuitCommand;
 import io.phy.nntp2p.configuration.ServerConfigurationItem;
-import io.phy.nntp2p.connection.Channel;
+import io.phy.nntp2p.common.Channel;
 import io.phy.nntp2p.server.ProxyServer;
 import io.phy.nntp2p.proxy.ArticleProxy;
 import io.phy.nntp2p.proxy.UserRepository;

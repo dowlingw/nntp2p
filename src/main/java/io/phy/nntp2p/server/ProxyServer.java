@@ -1,11 +1,11 @@
 package io.phy.nntp2p.server;
 
+import io.phy.nntp2p.protocol.NntpDecoder;
 import io.phy.nntp2p.server.command.ICommandImplementation;
-import io.phy.nntp2p.connection.Channel;
-import io.phy.nntp2p.connection.ConnectionState;
+import io.phy.nntp2p.common.Channel;
 import io.phy.nntp2p.exceptions.NntpUnknownCommandException;
-import io.phy.nntp2p.client.ClientCommand;
-import io.phy.nntp2p.protocol.NntpReply;
+import io.phy.nntp2p.protocol.NntpClientCommand;
+import io.phy.nntp2p.protocol.NntpServerReplyType;
 import io.phy.nntp2p.protocol.NntpEncoder;
 import io.phy.nntp2p.proxy.ArticleProxy;
 import io.phy.nntp2p.proxy.UserRepository;
@@ -38,27 +38,27 @@ public class ProxyServer {
     }
 
     public void run(Channel channel) {
-        ConnectionState state = new ConnectionState();
+        ClientState state = new ClientState();
 
         try {
             // Maybe we failed to initialise and need to exit before doing anythin
             if( state.isQuitting() ) {
-                NntpEncoder.WriteServerReply(channel, NntpReply.SERVICE_TEMPORARILY_UNAVAILABLE);
+                NntpEncoder.WriteServerReply(channel, NntpServerReplyType.SERVICE_TEMPORARILY_UNAVAILABLE);
             } else {
                 // First thing we have to do is publish a welcome message!
-                NntpEncoder.WriteServerReply(channel, NntpReply.SERVER_READY_POSTING_NOT_ALLOWED);
+                NntpEncoder.WriteServerReply(channel, NntpServerReplyType.SERVER_READY_POSTING_NOT_ALLOWED);
 
 
                 while(channel.getSocket().isConnected() && !state.isQuitting()) {
-                    ClientCommand command = null;
-                    String rawInput = channel.getReader().readLineString();
+                    NntpClientCommand command = null;
+                    String rawInput = NntpDecoder.readLineString(channel);
                     if( rawInput == null ) { break; }
                     try {
-                        command = ClientCommand.Parse(rawInput);
+                        command = NntpDecoder.ParseCommand(rawInput);
                         DispatchCommand(channel,state,command);
                     } catch (NntpUnknownCommandException e) {
                         log.info("Unknown command: " + rawInput);
-                        NntpEncoder.WriteServerReply(channel, NntpReply.COMMAND_NOT_RECOGNIZED);
+                        NntpEncoder.WriteServerReply(channel, NntpServerReplyType.COMMAND_NOT_RECOGNIZED);
                         continue;
                     }
                 }
@@ -77,7 +77,7 @@ public class ProxyServer {
         }
     }
 
-    private void DispatchCommand(Channel channel, ConnectionState state, ClientCommand command) throws IOException, NntpUnknownCommandException {
+    private void DispatchCommand(Channel channel, ClientState state, NntpClientCommand command) throws IOException, NntpUnknownCommandException {
         ICommandImplementation handler = handlers.get(command.getCommand());
         if( handler == null ) {
             throw new NntpUnknownCommandException();
@@ -85,7 +85,7 @@ public class ProxyServer {
 
         // Don't proceed if the command requires we authenticate
         if( handler.RequiresAuthentication() && state.getAuthenticatedUser() == null ) {
-            NntpEncoder.WriteServerReply(channel, NntpReply.AUTHENTICATION_REQUIRED);
+            NntpEncoder.WriteServerReply(channel, NntpServerReplyType.AUTHENTICATION_REQUIRED);
             return;
         }
 

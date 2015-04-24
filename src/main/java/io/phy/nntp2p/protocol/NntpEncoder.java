@@ -1,21 +1,35 @@
 package io.phy.nntp2p.protocol;
 
-import io.phy.nntp2p.connection.Channel;
+import io.phy.nntp2p.common.Article;
+import io.phy.nntp2p.common.Channel;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
 public final class NntpEncoder {
 
+    private NntpEncoder() {
+        // Never to be instantiated!
+    }
+
     private static final byte[] CRLF = {0x0D, 0x0A};
 
-    public static void WriteData(Channel channel, NntpProtocolMessage data) throws IOException {
-        channel.getWriter().write(data.ToNntpString());
+    private static void WriteData(Channel channel, String str) throws IOException {
+        channel.getWriter().write(str);
         writeByteArray(channel,CRLF);
         channel.getWriter().flush();
     }
-    public static void WriteServerReply(Channel channel, NntpReply reply) throws IOException {
-        WriteData(channel, new ServerResponse(reply));
+
+    public static void WriteData(Channel channel, NntpClientCommand data) throws IOException {
+        WriteData(channel, ToNntpString(data));
+    }
+
+    public static void WriteServerReply(Channel channel, NntpServerReply reply) throws IOException {
+        WriteData(channel, ToNntpString(reply));
+    }
+
+    public static void WriteServerReply(Channel channel, NntpServerReplyType reply) throws IOException {
+        WriteData(channel, ToNntpString(new NntpServerReply(reply)));
     }
 
     public static void WriteArticleBody(Channel channel, Article data) throws IOException {
@@ -35,6 +49,24 @@ public final class NntpEncoder {
                 outputStream.flush();
             }
         }
+    }
+
+    public static String ToNntpString(NntpClientCommand cmd) {
+        String retString = cmd.getCommand();
+
+        for (String arg : cmd.getArguments()) {
+            retString += " " + arg;
+        }
+
+        return retString;
+    }
+
+    public static String ToNntpString(NntpServerReply response) {
+        String s = response.getResponseCode().responseCode.toString();
+        if( ! response.getSections().isEmpty() ) {
+            s += " " + String.join(" ",response.getSections());
+        }
+        return s;
     }
 
     public static void WriteArticleHead(Channel channel, Article data, boolean continues) throws IOException {

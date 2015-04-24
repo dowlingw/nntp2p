@@ -1,13 +1,13 @@
 package io.phy.nntp2p.server.command;
 
-import io.phy.nntp2p.connection.Channel;
-import io.phy.nntp2p.connection.ConnectionState;
-import io.phy.nntp2p.client.ClientCommand;
+import io.phy.nntp2p.common.Channel;
+import io.phy.nntp2p.server.ClientState;
+import io.phy.nntp2p.protocol.NntpClientCommand;
 
 import java.io.IOException;
 
 public interface ICommandImplementation {
     String CommandName();
     boolean RequiresAuthentication();
-    void Handle(Channel channel, ConnectionState state, ClientCommand command) throws IOException;
+    void Handle(Channel channel, ClientState state, NntpClientCommand command) throws IOException;
 }

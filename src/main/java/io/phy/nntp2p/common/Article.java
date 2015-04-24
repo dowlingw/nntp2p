@@ -1,4 +1,4 @@
-package io.phy.nntp2p.protocol;
+package io.phy.nntp2p.common;
 
 import java.io.Serializable;
 

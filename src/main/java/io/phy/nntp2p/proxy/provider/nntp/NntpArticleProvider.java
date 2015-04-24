@@ -3,7 +3,7 @@ package io.phy.nntp2p.proxy.provider.nntp;
 import io.phy.nntp2p.configuration.ConnectionType;
 import io.phy.nntp2p.configuration.ServerConfigurationItem;
 import io.phy.nntp2p.client.OutboundConnection;
-import io.phy.nntp2p.protocol.Article;
+import io.phy.nntp2p.common.Article;
 import io.phy.nntp2p.proxy.IArticleProvider;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
