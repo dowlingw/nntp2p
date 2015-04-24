@@ -10,7 +10,7 @@ import java.net.Socket;
 public abstract class BaseConnection {
     protected Socket socket;
 
-    private static final String NNTP_ENCODING = "UTF-8";
+    protected static final String NNTP_ENCODING = "UTF-8";
     private static final byte[] CRLF = {0x0D, 0x0A};
 
     protected NntpStreamReader reader;

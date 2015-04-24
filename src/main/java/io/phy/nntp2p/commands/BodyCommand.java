@@ -1,18 +1,22 @@
 package io.phy.nntp2p.commands;
 
+import io.phy.nntp2p.connection.ClientChannel;
 import io.phy.nntp2p.connection.ConnectionState;
-import io.phy.nntp2p.connection.InboundConnection;
 import io.phy.nntp2p.exceptions.ArticleNotFoundException;
-import io.phy.nntp2p.protocol.Article;
-import io.phy.nntp2p.protocol.ClientCommand;
-import io.phy.nntp2p.protocol.NNTPReply;
-import io.phy.nntp2p.protocol.ServerResponse;
+import io.phy.nntp2p.protocol.*;
+import io.phy.nntp2p.proxy.ArticleProxy;
 
 import java.io.IOException;
 import java.util.logging.Logger;
 
 public class BodyCommand implements ICommandImplementation {
+
+    private ArticleProxy proxy;
     protected final static Logger log = Logger.getLogger(BodyCommand.class.getName());
+
+    public BodyCommand(ArticleProxy proxy) {
+        this.proxy = proxy;
+    }
 
     @Override
     public String CommandName() {
@@ -25,18 +29,18 @@ public class BodyCommand implements ICommandImplementation {
     }
 
     @Override
-    public void Handle(InboundConnection socket, ConnectionState state, ClientCommand command) throws IOException {
+    public void Handle(ClientChannel channel, ConnectionState state, ClientCommand command) throws IOException {
         // Do some validation over the article
         if( command.getArguments().size() > 1 ) {
             log.fine("Invalid ARTICLE request: " + command.ToNntpString());
-            socket.WriteData(new ServerResponse(NNTPReply.COMMAND_SYNTAX_ERROR));
+            NntpWriter.WriteServerReply(channel, NNTPReply.COMMAND_SYNTAX_ERROR);
             return;
         }
 
         // TODO: We only really support one variant of BODY, we should properly support the others
         String messageId = command.getArguments().get(0);
         if( ! messageId.startsWith("<") || ! messageId.endsWith(">") ) {
-            socket.WriteData(new ServerResponse(NNTPReply.COMMAND_UNAVAILABLE));
+            NntpWriter.WriteServerReply(channel, NNTPReply.COMMAND_UNAVAILABLE);
             return;
         }
 
@@ -45,10 +49,10 @@ public class BodyCommand implements ICommandImplementation {
 
         Article articleData;
         try {
-            articleData = socket.getProxy().GetArticle(messageId, state.getAuthenticatedUser());
+            articleData = proxy.GetArticle(messageId, state.getAuthenticatedUser());
         } catch (ArticleNotFoundException e) {
             log.fine("ARTICLE not found: " + messageId);
-            socket.WriteData(new ServerResponse(NNTPReply.NO_SUCH_ARTICLE_FOUND));
+            NntpWriter.WriteServerReply(channel, NNTPReply.NO_SUCH_ARTICLE_FOUND);
             return;
         }
         if (articleData == null) {
@@ -60,7 +64,7 @@ public class BodyCommand implements ICommandImplementation {
         response.addArg(0);
         response.addArg(messageId);
 
-        socket.WriteData(response);
-        socket.WriteArticleBody(articleData);
+        NntpWriter.WriteData(channel, response);
+        NntpWriter.WriteArticleBody(channel,articleData);
     }
 }

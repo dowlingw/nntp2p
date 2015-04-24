@@ -1,10 +1,10 @@
 package io.phy.nntp2p.commands;
 
+import io.phy.nntp2p.connection.ClientChannel;
 import io.phy.nntp2p.connection.ConnectionState;
-import io.phy.nntp2p.connection.InboundConnection;
 import io.phy.nntp2p.protocol.ClientCommand;
 import io.phy.nntp2p.protocol.NNTPReply;
-import io.phy.nntp2p.protocol.ServerResponse;
+import io.phy.nntp2p.protocol.NntpWriter;
 
 import java.io.IOException;
 
@@ -20,8 +20,9 @@ public class QuitCommand implements ICommandImplementation {
     }
 
     @Override
-    public void Handle(InboundConnection socket, ConnectionState state, ClientCommand command) throws IOException {
+    public void Handle(ClientChannel channel, ConnectionState state, ClientCommand command) throws IOException {
         state.setQuitting(true);
-        socket.WriteData(new ServerResponse(NNTPReply.CLOSING_CONNECTION));
+        NntpWriter.WriteServerReply(channel, NNTPReply.CLOSING_CONNECTION);
+
     }
 }
