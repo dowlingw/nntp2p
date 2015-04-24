@@ -4,7 +4,7 @@ import io.phy.nntp2p.configuration.ConnectionType;
 import io.phy.nntp2p.common.Article;
 
 public interface IArticleProvider {
-    public boolean HasArticle(String messageId) throws InternalError;
-    public Article GetArticle(String messageId);
-    public ConnectionType ProviderType();
+    boolean HasArticle(String messageId) throws InternalError;
+    Article GetArticle(String messageId);
+    ConnectionType ProviderType();
 }

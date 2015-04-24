@@ -32,11 +32,8 @@ public class Application {
         // Configured NNTP Servers
         proxy = new ArticleProxy();
         for (ServerConfigurationItem config : outboundPeerConfiguration) {
-            NntpArticleProvider nntpArticleProvider = new NntpArticleProvider(config);
-            proxy.RegisterProvider(nntpArticleProvider);
+            proxy.RegisterProvider(new NntpArticleProvider(config));
         }
-
-        // Register the local cache
         proxy.RegisterCache(cache);
     }
 

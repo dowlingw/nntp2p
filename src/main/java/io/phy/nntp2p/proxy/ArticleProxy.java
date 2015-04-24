@@ -36,9 +36,6 @@ public class ArticleProxy {
     private List<IArticleProvider> providers;
     private List<IArticleCache> caches;
 
-    private BlockingQueue<Runnable> jobQueue;
-    private ThreadPoolExecutor jobManager;
-
     // TODO: Figure out something sensible
     private final long articleCheckTimeoutMillis = 10000L;
 
@@ -47,9 +44,6 @@ public class ArticleProxy {
     public ArticleProxy() {
         providers = new ArrayList<>();
         caches = new ArrayList<>();
-
-        jobQueue = new LinkedBlockingQueue<>();
-        jobManager = new ThreadPoolExecutor(1,Integer.MAX_VALUE,1L, TimeUnit.HOURS,jobQueue);
     }
 
     public void RegisterCache(IArticleCache cache) {
@@ -87,6 +81,9 @@ public class ArticleProxy {
      * @return
      */
     private IArticleProvider resolveProvider(String messageId, User authenticatedUser) {
+        BlockingQueue<Runnable> jobQueue = new LinkedBlockingQueue<>();
+        ThreadPoolExecutor jobManager = new ThreadPoolExecutor(1,Integer.MAX_VALUE,1L, TimeUnit.HOURS,jobQueue);
+
         // Generate the list of jobs to run
         List<ArticleCheckJob> jobs = new ArrayList<>();
         for ( IArticleProvider provider : providers ) {

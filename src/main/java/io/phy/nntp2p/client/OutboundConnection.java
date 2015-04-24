@@ -13,11 +13,15 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.logging.Logger;
 
 public class OutboundConnection implements IArticleProvider {
     private ServerConfigurationItem configuration;
     private Channel channel;
     protected boolean is_valid = true;
+
+    protected final static Logger log = Logger.getLogger(OutboundConnection.class.getName());
+
 
     public OutboundConnection(ServerConfigurationItem configuration) {
         this.configuration = configuration;
@@ -29,6 +33,11 @@ public class OutboundConnection implements IArticleProvider {
 
     public boolean isValid() {
         return is_valid;
+    }
+
+    private void Invalidate(String message) {
+        is_valid = false;
+        log.warning("Connection invalidated: " + message);
     }
 
     public void Connect() throws IOException {
@@ -46,7 +55,7 @@ public class OutboundConnection implements IArticleProvider {
             // Read server advertisement
             NntpServerReply advertisement = NntpDecoder.Parse(channel);
             if( ! advertisement.getResponseCode().isPositiveCompletion() ) {
-                is_valid = false;
+                Invalidate("No server advertisement received");
                 return;
             }
 
@@ -60,7 +69,7 @@ public class OutboundConnection implements IArticleProvider {
                 NntpServerReply sendUsernameResponse = NntpDecoder.Parse(channel);
 
                 if( sendUsernameResponse.getResponseCode() != NntpServerReplyType.PASSWORD_REQUIRED) {
-                    is_valid = false;
+                    Invalidate("AUTHINFO USER followed by unexpected response: "+sendUsernameResponse.getResponseCode().name());
                     return;
                 }
 
@@ -72,12 +81,13 @@ public class OutboundConnection implements IArticleProvider {
                 NntpServerReply sendPasswordResponse = NntpDecoder.Parse(channel);
 
                 if( sendPasswordResponse.getResponseCode() != NntpServerReplyType.AUTHENTICATION_ACCEPTED ) {
-                    is_valid = false;
-                    return;                }
+                    Invalidate("Authentication rejected: "+sendPasswordResponse.getResponseCode().name());
+                    return;
+                }
             }
 
         } catch (NntpUnknownResponseException e) {
-            is_valid = false;
+            Invalidate("Unexpected response: "+e.getResponse());
             return;
         }
     }

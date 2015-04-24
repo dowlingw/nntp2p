@@ -108,7 +108,7 @@ public final class NntpDecoder {
         try {
             command = NntpServerReplyType.Resolve(Integer.parseInt(data[0]));
         } catch (IllegalArgumentException e) {
-            throw new NntpUnknownResponseException();
+            throw new NntpUnknownResponseException(data[0]);
         }
 
         return new NntpServerReply(command);
