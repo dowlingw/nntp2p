@@ -1,6 +1,6 @@
 package io.phy.nntp2p.proxy.provider.nntp;
 
-import io.phy.nntp2p.configuration.ServerConfigurationItem;
+import io.phy.nntp2p.configuration.NntpServerDetails;
 import io.phy.nntp2p.client.OutboundConnection;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
@@ -8,9 +8,9 @@ import org.apache.commons.pool2.impl.DefaultPooledObject;
 
 public class NntpConnectionFactory extends BasePooledObjectFactory<OutboundConnection> {
 
-    private ServerConfigurationItem config;
+    private NntpServerDetails config;
 
-    public NntpConnectionFactory(ServerConfigurationItem config) {
+    public NntpConnectionFactory(NntpServerDetails config) {
         this.config = config;
     }
 

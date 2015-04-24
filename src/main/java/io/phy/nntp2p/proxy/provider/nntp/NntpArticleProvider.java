@@ -1,7 +1,7 @@
 package io.phy.nntp2p.proxy.provider.nntp;
 
 import io.phy.nntp2p.configuration.ConnectionType;
-import io.phy.nntp2p.configuration.ServerConfigurationItem;
+import io.phy.nntp2p.configuration.NntpServerDetails;
 import io.phy.nntp2p.client.OutboundConnection;
 import io.phy.nntp2p.common.Article;
 import io.phy.nntp2p.proxy.IArticleProvider;
@@ -29,12 +29,12 @@ public class NntpArticleProvider implements IArticleProvider {
 
     private final static long MAX_POOL_WAIT_TIME = 10000L;
 
-    private ServerConfigurationItem _config;
+    private NntpServerDetails _config;
     private GenericObjectPool<OutboundConnection> _pool;
 
     protected final static Logger log = Logger.getLogger(NntpArticleProvider.class.getName());
 
-    public NntpArticleProvider(ServerConfigurationItem config) throws InvalidObjectException {
+    public NntpArticleProvider(NntpServerDetails config) throws InvalidObjectException {
         _config = config;
 
         // Validate the configuration
@@ -79,7 +79,7 @@ public class NntpArticleProvider implements IArticleProvider {
         // TODO: Be less shit
         if ( (_pool.getMaxTotal() - _pool.getNumActive()) < 2 ) {
             log.warning("No upstream threads available to service GET request");
-            throw new InternalError("Failed");
+            throw new InternalError("ThreadPool depleted");
         }
 
         // TODO: Edge case exists where # idle changes between querying it and actually borrowing an object

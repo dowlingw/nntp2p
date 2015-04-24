@@ -1,14 +1,12 @@
 package io.phy.nntp2p.server;
 
-import io.phy.nntp2p.protocol.NntpDecoder;
-import io.phy.nntp2p.server.command.ICommandImplementation;
 import io.phy.nntp2p.common.Channel;
 import io.phy.nntp2p.exceptions.NntpUnknownCommandException;
 import io.phy.nntp2p.protocol.NntpClientCommand;
-import io.phy.nntp2p.protocol.NntpServerReplyType;
+import io.phy.nntp2p.protocol.NntpDecoder;
 import io.phy.nntp2p.protocol.NntpEncoder;
-import io.phy.nntp2p.proxy.ArticleProxy;
-import io.phy.nntp2p.proxy.UserRepository;
+import io.phy.nntp2p.protocol.NntpServerReplyType;
+import io.phy.nntp2p.server.command.ICommandImplementation;
 
 import java.io.IOException;
 import java.util.Map;
@@ -20,18 +18,9 @@ import java.util.logging.Logger;
 // idempotent so that the same ProxyServer instance can
 // be used for serving all requests.
 public class ProxyServer {
-
-    private ArticleProxy proxy;
-    private UserRepository userRepository;
-
     private Map<String,ICommandImplementation> handlers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
     protected final static Logger log = Logger.getLogger(ProxyServer.class.getName());
-
-    public ProxyServer(ArticleProxy proxy, UserRepository userRepository) {
-        this.proxy = proxy;
-        this.userRepository = userRepository;
-    }
 
     public void RegisterCommandHandler(ICommandImplementation handler) {
         handlers.put(handler.CommandName(),handler);

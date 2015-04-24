@@ -5,14 +5,19 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import io.phy.nntp2p.common.Article;
 import io.phy.nntp2p.configuration.ConnectionType;
+import io.phy.nntp2p.configuration.Settings;
 import io.phy.nntp2p.proxy.provider.IArticleCache;
 import liquibase.Contexts;
 import liquibase.Liquibase;
 import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
+import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.*;
 import java.sql.*;
 import java.util.Properties;
@@ -21,11 +26,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+@Component
 public class LocalCache extends CacheLoader<String, Article> implements IArticleCache {
 
-    private Integer cacheMemoryArticleLimit;
-    private final String cacheDiskLocation;
-    private final Integer cacheDiskSizeLimit;
+    @Autowired
+    Settings settings;
 
     private static final String SQL_INSERT_CACHE = "INSERT INTO articles (message_id,file_name,file_size_bytes,insert_time) VALUES(?,?,?,CURRENT_TIMESTAMP)";
     private static final String SQL_CACHE_QUERY = "SELECT file_name FROM articles WHERE message_id=?";
@@ -35,15 +40,24 @@ public class LocalCache extends CacheLoader<String, Article> implements IArticle
 
     protected final static Logger log = Logger.getLogger(LocalCache.class.getName());
 
-    public LocalCache(Integer cacheMemoryArticleLimit, String cacheDiskLocation, Integer cacheDiskSizeLimit) {
-        this.cacheMemoryArticleLimit = cacheMemoryArticleLimit;
-        this.cacheDiskLocation = cacheDiskLocation;
-        this.cacheDiskSizeLimit = cacheDiskSizeLimit;
-
+    @PostConstruct
+    private void Initialise() throws SQLException, LiquibaseException {
         memoryCache = CacheBuilder.newBuilder()
-                .maximumSize(cacheMemoryArticleLimit)
+                .maximumSize(settings.getCacheMemoryArticleLimit())
                 .expireAfterWrite(1, TimeUnit.DAYS)
                 .build(this);
+
+        Properties dbProps = System.getProperties();
+        dbProps.setProperty("derby.system.home", settings.getCacheDiskLocation());
+
+        conn = DriverManager.getConnection("jdbc:derby:db;create=true", dbProps);
+        conn.setAutoCommit(true);
+
+        // Run all the database migrations
+        Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(conn));
+        Liquibase lb = new Liquibase("schema.xml",new ClassLoaderResourceAccessor(),database);
+        lb.forceReleaseLocks(); // Only safe because we're using Derby DB
+        lb.update((Contexts)null);
     }
 
     @Override
@@ -119,24 +133,6 @@ public class LocalCache extends CacheLoader<String, Article> implements IArticle
         // At this point the object is cached!
     }
 
-    public void initialise() throws Exception {
-        // Create or open the Derby database
-        //Properties dbProps = new Properties();
-        Properties dbProps = System.getProperties();
-        dbProps.setProperty("derby.system.home", cacheDiskLocation);
-
-        conn = DriverManager.getConnection("jdbc:derby:db;create=true", dbProps);
-        conn.setAutoCommit(true);
-
-        // Run all the database migrations
-        Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(conn));
-        Liquibase lb = new Liquibase("schema.xml",new ClassLoaderResourceAccessor(),database);
-        lb.forceReleaseLocks(); // Only safe because we're using Derby DB
-        lb.update((Contexts)null);
-
-        // Statements are prepared as required because they will be used concurrently
-    }
-
     private PreparedStatement GetInsertPS() throws SQLException {
         PreparedStatement statement = conn.prepareStatement(SQL_INSERT_CACHE);
         statement.closeOnCompletion();
@@ -173,6 +169,6 @@ public class LocalCache extends CacheLoader<String, Article> implements IArticle
     }
 
     private File FilePath(String fileName) {
-        return new File(cacheDiskLocation,fileName);
+        return new File(settings.getCacheDiskLocation(),fileName);
     }
 }

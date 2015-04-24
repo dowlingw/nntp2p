@@ -2,7 +2,7 @@ package io.phy.nntp2p.client;
 
 import io.phy.nntp2p.common.Article;
 import io.phy.nntp2p.configuration.ConnectionType;
-import io.phy.nntp2p.configuration.ServerConfigurationItem;
+import io.phy.nntp2p.configuration.NntpServerDetails;
 import io.phy.nntp2p.common.Channel;
 import io.phy.nntp2p.exceptions.NntpUnknownResponseException;
 import io.phy.nntp2p.protocol.*;
@@ -16,18 +16,18 @@ import java.net.Socket;
 import java.util.logging.Logger;
 
 public class OutboundConnection implements IArticleProvider {
-    private ServerConfigurationItem configuration;
+    private NntpServerDetails configuration;
     private Channel channel;
     protected boolean is_valid = true;
 
     protected final static Logger log = Logger.getLogger(OutboundConnection.class.getName());
 
 
-    public OutboundConnection(ServerConfigurationItem configuration) {
+    public OutboundConnection(NntpServerDetails configuration) {
         this.configuration = configuration;
     }
 
-    public ServerConfigurationItem getConfiguration() {
+    public NntpServerDetails getConfiguration() {
         return configuration;
     }
 

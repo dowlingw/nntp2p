@@ -3,7 +3,7 @@ package io.phy.nntp2p.configuration;
 /**
  * Represents the configuration of an upstream server
  */
-public class ServerConfigurationItem {
+public class NntpServerDetails {
     private String hostname;
     private Integer port;
     private boolean useSsl;
@@ -12,7 +12,7 @@ public class ServerConfigurationItem {
 
     private PasswordCredential credentials;
 
-    public ServerConfigurationItem(String hostname, Integer port, boolean useSsl, Integer maxConnections, ConnectionType connectionType, PasswordCredential credential) {
+    public NntpServerDetails(String hostname, Integer port, boolean useSsl, Integer maxConnections, ConnectionType connectionType, PasswordCredential credential) {
         this.hostname = hostname;
         this.port = port;
         this.useSsl = useSsl;
