@@ -3,7 +3,7 @@ package io.phy.nntp2p.protocol;
 /**
  * Because org.apache.commons.net.nntp.NNTPCommand is just a bit shit
  */
-public enum NNTPCommand {
+public enum NntpCommand {
 
 //    GROUP,
 //    HELP,

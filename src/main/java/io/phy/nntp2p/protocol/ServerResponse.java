@@ -8,10 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ServerResponse implements NntpProtocolMessage {
-    private NNTPReply responseCode;
+    private NntpReply responseCode;
     private List<String> sections = new ArrayList<>();
 
-    public ServerResponse(NNTPReply command) {
+    public ServerResponse(NntpReply command) {
         this.responseCode = command;
     }
 
@@ -32,7 +32,7 @@ public class ServerResponse implements NntpProtocolMessage {
         return s;
     }
 
-    public NNTPReply getResponseCode() {
+    public NntpReply getResponseCode() {
         return this.responseCode;
     }
 
@@ -44,9 +44,9 @@ public class ServerResponse implements NntpProtocolMessage {
         }
 
         // See if the command is one we know about
-        NNTPReply command;
+        NntpReply command;
         try {
-            command = NNTPReply.Resolve(Integer.parseInt(data[0]));
+            command = NntpReply.Resolve(Integer.parseInt(data[0]));
         } catch (IllegalArgumentException e) {
             throw new NntpUnknownResponseException();
         }

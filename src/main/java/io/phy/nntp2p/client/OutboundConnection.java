@@ -1,5 +1,6 @@
-package io.phy.nntp2p.connection;
+package io.phy.nntp2p.client;
 
+import io.phy.nntp2p.client.ClientCommand;
 import io.phy.nntp2p.configuration.ConnectionType;
 import io.phy.nntp2p.configuration.ServerConfigurationItem;
 import io.phy.nntp2p.exceptions.NntpUnknownResponseException;
@@ -91,26 +92,26 @@ public class OutboundConnection implements IArticleProvider {
 
             // Always attempt authentication
             if( configuration.getCredentials() != null ) {
-                ClientCommand sendUsername = new ClientCommand(NNTPCommand.AUTHINFO);
+                ClientCommand sendUsername = new ClientCommand(NntpCommand.AUTHINFO);
                 sendUsername.getArguments().add("USER");
                 sendUsername.getArguments().add(configuration.getCredentials().getUsername());
 
                 WriteData(sendUsername);
                 ServerResponse sendUsernameResponse = ServerResponse.Parse(reader);
 
-                if( sendUsernameResponse.getResponseCode() != NNTPReply.PASSWORD_REQUIRED) {
+                if( sendUsernameResponse.getResponseCode() != NntpReply.PASSWORD_REQUIRED) {
                     is_valid = false;
                     return;
                 }
 
-                ClientCommand sendPassword = new ClientCommand(NNTPCommand.AUTHINFO);
+                ClientCommand sendPassword = new ClientCommand(NntpCommand.AUTHINFO);
                 sendPassword.getArguments().add("PASS");
                 sendPassword.getArguments().add(configuration.getCredentials().getPassword());
 
                 WriteData(sendPassword);
                 ServerResponse sendPasswordResponse = ServerResponse.Parse(reader);
 
-                if( sendPasswordResponse.getResponseCode() != NNTPReply.AUTHENTICATION_ACCEPTED ) {
+                if( sendPasswordResponse.getResponseCode() != NntpReply.AUTHENTICATION_ACCEPTED ) {
                     is_valid = false;
                     return;                }
             }
@@ -123,13 +124,13 @@ public class OutboundConnection implements IArticleProvider {
 
     @Override
     public boolean HasArticle(String messageId) throws InternalError {
-        ClientCommand upstreamStat = new ClientCommand(NNTPCommand.STAT);
+        ClientCommand upstreamStat = new ClientCommand(NntpCommand.STAT);
         upstreamStat.getArguments().add(String.format("<%s>",messageId));
 
         try {
             WriteData(upstreamStat);
             ServerResponse response = ServerResponse.Parse(reader);
-            return (response.getResponseCode() == NNTPReply.ARTICLE_RETRIEVED_REQUEST_TEXT_SEPARATELY);
+            return (response.getResponseCode() == NntpReply.ARTICLE_RETRIEVED_REQUEST_TEXT_SEPARATELY);
 
         } catch (IOException e) {
             // TODO: Handle this
@@ -141,13 +142,13 @@ public class OutboundConnection implements IArticleProvider {
 
     @Override
     public Article GetArticle(String messageId) {
-        ClientCommand upstreamStat = new ClientCommand(NNTPCommand.ARTICLE);
+        ClientCommand upstreamStat = new ClientCommand(NntpCommand.ARTICLE);
         upstreamStat.getArguments().add(String.format("<%s>",messageId));
 
         try {
             WriteData(upstreamStat);
             ServerResponse response = ServerResponse.Parse(reader);
-            if( response.getResponseCode() != NNTPReply.ARTICLE_RETRIEVED_HEAD_AND_BODY_FOLLOW ) {
+            if( response.getResponseCode() != NntpReply.ARTICLE_RETRIEVED_HEAD_AND_BODY_FOLLOW ) {
                 // TODO: No no no
                 return null;
             }

@@ -2,7 +2,7 @@ package io.phy.nntp2p.server.command;
 
 import io.phy.nntp2p.connection.Channel;
 import io.phy.nntp2p.connection.ConnectionState;
-import io.phy.nntp2p.protocol.ClientCommand;
+import io.phy.nntp2p.client.ClientCommand;
 
 import java.io.IOException;
 

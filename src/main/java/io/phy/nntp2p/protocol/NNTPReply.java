@@ -4,7 +4,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum NNTPReply {
+public enum NntpReply {
     // DO NOT REMOVE ITEMS FROM THIS LIST
     SERVER_READY_POSTING_ALLOWED (200),
     SERVER_READY_POSTING_NOT_ALLOWED (201),
@@ -25,20 +25,20 @@ public enum NNTPReply {
     ;
 
     // Allow reverse lookups
-    private static final Map<Integer,NNTPReply> lookup = new HashMap<Integer,NNTPReply>();
+    private static final Map<Integer,NntpReply> lookup = new HashMap<Integer,NntpReply>();
     static {
-        for(NNTPReply s : EnumSet.allOf(NNTPReply.class))
+        for(NntpReply s : EnumSet.allOf(NntpReply.class))
             lookup.put(s.responseCode, s);
     }
 
     // Reverse Lookups
-    public static NNTPReply Resolve(Integer responseCode) {
+    public static NntpReply Resolve(Integer responseCode) {
         return lookup.get(responseCode);
     }
 
     protected Integer responseCode;
 
-    NNTPReply(Integer responseCode) {
+    NntpReply(Integer responseCode) {
      this.responseCode = responseCode;
     }
 

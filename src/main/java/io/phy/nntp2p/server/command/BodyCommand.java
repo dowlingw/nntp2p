@@ -1,5 +1,6 @@
 package io.phy.nntp2p.server.command;
 
+import io.phy.nntp2p.client.ClientCommand;
 import io.phy.nntp2p.connection.Channel;
 import io.phy.nntp2p.connection.ConnectionState;
 import io.phy.nntp2p.exceptions.ArticleNotFoundException;
@@ -33,14 +34,14 @@ public class BodyCommand implements ICommandImplementation {
         // Do some validation over the article
         if( command.getArguments().size() > 1 ) {
             log.fine("Invalid ARTICLE request: " + command.ToNntpString());
-            NntpEncoder.WriteServerReply(channel, NNTPReply.COMMAND_SYNTAX_ERROR);
+            NntpEncoder.WriteServerReply(channel, NntpReply.COMMAND_SYNTAX_ERROR);
             return;
         }
 
         // TODO: We only really support one variant of BODY, we should properly support the others
         String messageId = command.getArguments().get(0);
         if( ! messageId.startsWith("<") || ! messageId.endsWith(">") ) {
-            NntpEncoder.WriteServerReply(channel, NNTPReply.COMMAND_UNAVAILABLE);
+            NntpEncoder.WriteServerReply(channel, NntpReply.COMMAND_UNAVAILABLE);
             return;
         }
 
@@ -52,7 +53,7 @@ public class BodyCommand implements ICommandImplementation {
             articleData = proxy.GetArticle(messageId, state.getAuthenticatedUser());
         } catch (ArticleNotFoundException e) {
             log.fine("ARTICLE not found: " + messageId);
-            NntpEncoder.WriteServerReply(channel, NNTPReply.NO_SUCH_ARTICLE_FOUND);
+            NntpEncoder.WriteServerReply(channel, NntpReply.NO_SUCH_ARTICLE_FOUND);
             return;
         }
         if (articleData == null) {
@@ -60,7 +61,7 @@ public class BodyCommand implements ICommandImplementation {
         }
 
         // TODO: Have hit a case here where articleData is null
-        ServerResponse response = new ServerResponse(NNTPReply.ARTICLE_RETRIEVED_BODY_FOLLOWS);
+        ServerResponse response = new ServerResponse(NntpReply.ARTICLE_RETRIEVED_BODY_FOLLOWS);
         response.addArg(0);
         response.addArg(messageId);
 

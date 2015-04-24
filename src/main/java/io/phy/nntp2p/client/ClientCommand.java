@@ -1,6 +1,8 @@
-package io.phy.nntp2p.protocol;
+package io.phy.nntp2p.client;
 
 import io.phy.nntp2p.exceptions.NntpUnknownCommandException;
+import io.phy.nntp2p.protocol.NntpCommand;
+import io.phy.nntp2p.protocol.NntpProtocolMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +15,7 @@ public class ClientCommand implements NntpProtocolMessage {
         this.command = command;
     }
 
-    public ClientCommand(NNTPCommand command) {
+    public ClientCommand(NntpCommand command) {
         this.command = command.name();
     }
 

@@ -14,7 +14,7 @@ public final class NntpEncoder {
         writeByteArray(channel,CRLF);
         channel.getWriter().flush();
     }
-    public static void WriteServerReply(Channel channel, NNTPReply reply) throws IOException {
+    public static void WriteServerReply(Channel channel, NntpReply reply) throws IOException {
         WriteData(channel, new ServerResponse(reply));
     }
 
