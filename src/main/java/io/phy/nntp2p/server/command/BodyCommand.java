@@ -1,6 +1,6 @@
-package io.phy.nntp2p.commands;
+package io.phy.nntp2p.server.command;
 
-import io.phy.nntp2p.connection.ClientChannel;
+import io.phy.nntp2p.connection.Channel;
 import io.phy.nntp2p.connection.ConnectionState;
 import io.phy.nntp2p.exceptions.ArticleNotFoundException;
 import io.phy.nntp2p.protocol.*;
@@ -29,18 +29,18 @@ public class BodyCommand implements ICommandImplementation {
     }
 
     @Override
-    public void Handle(ClientChannel channel, ConnectionState state, ClientCommand command) throws IOException {
+    public void Handle(Channel channel, ConnectionState state, ClientCommand command) throws IOException {
         // Do some validation over the article
         if( command.getArguments().size() > 1 ) {
             log.fine("Invalid ARTICLE request: " + command.ToNntpString());
-            NntpWriter.WriteServerReply(channel, NNTPReply.COMMAND_SYNTAX_ERROR);
+            NntpEncoder.WriteServerReply(channel, NNTPReply.COMMAND_SYNTAX_ERROR);
             return;
         }
 
         // TODO: We only really support one variant of BODY, we should properly support the others
         String messageId = command.getArguments().get(0);
         if( ! messageId.startsWith("<") || ! messageId.endsWith(">") ) {
-            NntpWriter.WriteServerReply(channel, NNTPReply.COMMAND_UNAVAILABLE);
+            NntpEncoder.WriteServerReply(channel, NNTPReply.COMMAND_UNAVAILABLE);
             return;
         }
 
@@ -52,7 +52,7 @@ public class BodyCommand implements ICommandImplementation {
             articleData = proxy.GetArticle(messageId, state.getAuthenticatedUser());
         } catch (ArticleNotFoundException e) {
             log.fine("ARTICLE not found: " + messageId);
-            NntpWriter.WriteServerReply(channel, NNTPReply.NO_SUCH_ARTICLE_FOUND);
+            NntpEncoder.WriteServerReply(channel, NNTPReply.NO_SUCH_ARTICLE_FOUND);
             return;
         }
         if (articleData == null) {
@@ -64,7 +64,7 @@ public class BodyCommand implements ICommandImplementation {
         response.addArg(0);
         response.addArg(messageId);
 
-        NntpWriter.WriteData(channel, response);
-        NntpWriter.WriteArticleBody(channel,articleData);
+        NntpEncoder.WriteData(channel, response);
+        NntpEncoder.WriteArticleBody(channel, articleData);
     }
 }

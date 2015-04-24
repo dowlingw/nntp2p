@@ -12,14 +12,6 @@ public class ServerConfigurationItem {
 
     private PasswordCredential credentials;
 
-    public ServerConfigurationItem(String hostname, Integer port, boolean useSsl, Integer maxConnections, ConnectionType connectionType) {
-        this.hostname = hostname;
-        this.port = port;
-        this.useSsl = useSsl;
-        this.maxConnections = maxConnections;
-        this.connectionType = connectionType;
-    }
-
     public ServerConfigurationItem(String hostname, Integer port, boolean useSsl, Integer maxConnections, ConnectionType connectionType, PasswordCredential credential) {
         this.hostname = hostname;
         this.port = port;

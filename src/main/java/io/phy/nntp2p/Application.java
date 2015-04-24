@@ -1,11 +1,11 @@
 package io.phy.nntp2p;
 
-import io.phy.nntp2p.commands.AuthinfoCommand;
-import io.phy.nntp2p.commands.BodyCommand;
-import io.phy.nntp2p.commands.QuitCommand;
+import io.phy.nntp2p.server.command.AuthinfoCommand;
+import io.phy.nntp2p.server.command.BodyCommand;
+import io.phy.nntp2p.server.command.QuitCommand;
 import io.phy.nntp2p.configuration.ServerConfigurationItem;
-import io.phy.nntp2p.connection.ClientChannel;
-import io.phy.nntp2p.connection.ProxyServer;
+import io.phy.nntp2p.connection.Channel;
+import io.phy.nntp2p.server.ProxyServer;
 import io.phy.nntp2p.proxy.ArticleProxy;
 import io.phy.nntp2p.proxy.UserRepository;
 import io.phy.nntp2p.proxy.provider.cache.LocalCache;
@@ -58,11 +58,11 @@ public class Application {
 
     private class ProxyServerWrapper implements Runnable {
         private ProxyServer server;
-        private ClientChannel socket;
+        private Channel socket;
 
         private ProxyServerWrapper(ProxyServer server, Socket socket) throws IOException {
             this.server = server;
-            this.socket = new ClientChannel(socket);
+            this.socket = new Channel(socket);
         }
 
         @Override

@@ -1,14 +1,15 @@
 package io.phy.nntp2p.protocol;
 
 import java.io.*;
+import java.nio.charset.Charset;
 
-public class NntpStreamReader extends DataInputStream {
+public class NntpDecoder extends DataInputStream {
 
     private String nntpEncoding;
 
-    public NntpStreamReader(InputStream stream, String nntpEncoding) {
+    public NntpDecoder(InputStream stream, Charset nntpEncoding) {
         super(stream);
-        this.nntpEncoding = nntpEncoding;
+        this.nntpEncoding = nntpEncoding.name();
     }
 
     private ByteArrayOutputStream readByteLine() {

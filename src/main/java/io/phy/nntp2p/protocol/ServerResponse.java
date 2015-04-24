@@ -54,11 +54,11 @@ public class ServerResponse implements NntpProtocolMessage {
         return new ServerResponse(command);
     }
 
-    public static ServerResponse Parse(NntpStreamReader reader) throws NntpUnknownResponseException, UnsupportedEncodingException {
+    public static ServerResponse Parse(NntpDecoder reader) throws NntpUnknownResponseException, UnsupportedEncodingException {
         return ServerResponse.Parse(reader.readLineString());
     }
 
-    public static byte[] ReadMultiLine(NntpStreamReader reader, boolean emptyLineTermination) {
+    public static byte[] ReadMultiLine(NntpDecoder reader, boolean emptyLineTermination) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         while( true ) {
             byte[] raw = reader.readLineBytes();
