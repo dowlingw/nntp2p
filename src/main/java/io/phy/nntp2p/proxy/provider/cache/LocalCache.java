@@ -3,8 +3,8 @@ package io.phy.nntp2p.proxy.provider.cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import io.phy.nntp2p.configuration.ConnectionType;
 import io.phy.nntp2p.common.Article;
+import io.phy.nntp2p.configuration.ConnectionType;
 import io.phy.nntp2p.proxy.provider.IArticleCache;
 import liquibase.Contexts;
 import liquibase.Liquibase;
@@ -27,10 +27,10 @@ public class LocalCache extends CacheLoader<String, Article> implements IArticle
     private final String cacheDiskLocation;
     private final Integer cacheDiskSizeLimit;
 
-    // SQL Prepared statements
-    PreparedStatement insertCacheItem;
-    PreparedStatement getCacheItem;
+    private static final String SQL_INSERT_CACHE = "INSERT INTO articles (message_id,file_name,file_size_bytes,insert_time) VALUES(?,?,?,CURRENT_TIMESTAMP)";
+    private static final String SQL_CACHE_QUERY = "SELECT file_name FROM articles WHERE message_id=?";
 
+    private Connection conn;
     private LoadingCache<String, Article> memoryCache;
 
     protected final static Logger log = Logger.getLogger(LocalCache.class.getName());
@@ -49,11 +49,15 @@ public class LocalCache extends CacheLoader<String, Article> implements IArticle
     @Override
     public boolean HasArticle(String messageId) throws InternalError {
         try {
+            PreparedStatement getCacheItem = GetQueryPS();
             getCacheItem.setString(1,messageId);
             ResultSet resultSet = getCacheItem.executeQuery();
+            boolean result = false;
             while(resultSet.next()) {
-                return true;
+                result = true;
             }
+            resultSet.close();
+            return result;
         } catch (SQLException e) {
         }
         return false;
@@ -100,10 +104,12 @@ public class LocalCache extends CacheLoader<String, Article> implements IArticle
 
         // Insert record to the database
         try {
+            PreparedStatement insertCacheItem = GetInsertPS();
             insertCacheItem.setString(1,article.getMessageId());
             insertCacheItem.setString(2, uuid.toString());
             insertCacheItem.setInt(3, filesize.intValue());
             insertCacheItem.executeUpdate();
+            conn.commit();  // Because setting autocommit to true apparently isn't good enough
         } catch (SQLException e) {
             log.severe(String.format("Failed to write article housekeeping, deleting object; messageId=%s file=%s",article.getMessageId(),destFile.toString()));
             destFile.delete();
@@ -119,22 +125,34 @@ public class LocalCache extends CacheLoader<String, Article> implements IArticle
         Properties dbProps = System.getProperties();
         dbProps.setProperty("derby.system.home", cacheDiskLocation);
 
-        Connection conn = DriverManager.getConnection("jdbc:derby:db;create=true", dbProps);
+        conn = DriverManager.getConnection("jdbc:derby:db;create=true", dbProps);
         conn.setAutoCommit(true);
 
         // Run all the database migrations
         Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(conn));
         Liquibase lb = new Liquibase("schema.xml",new ClassLoaderResourceAccessor(),database);
+        lb.forceReleaseLocks(); // Only safe because we're using Derby DB
         lb.update((Contexts)null);
 
-        // Prepare statements
-        // Note: I'm trying to avoid pulling in a full blown ORM for this project
-        insertCacheItem = conn.prepareStatement("INSERT INTO articles (message_id,file_name,file_size_bytes,insert_time) VALUES(?,?,?,CURRENT_TIMESTAMP)");
-        getCacheItem = conn.prepareStatement("SELECT file_name FROM articles WHERE message_id=?");
+        // Statements are prepared as required because they will be used concurrently
+    }
+
+    private PreparedStatement GetInsertPS() throws SQLException {
+        PreparedStatement statement = conn.prepareStatement(SQL_INSERT_CACHE);
+        statement.closeOnCompletion();
+        return statement;
+    }
+
+    private PreparedStatement GetQueryPS() throws SQLException {
+        PreparedStatement statement = conn.prepareStatement(SQL_CACHE_QUERY);
+        statement.closeOnCompletion();
+        return statement;
     }
 
     @Override
     public Article load(String messageId) throws Exception {
+        PreparedStatement getCacheItem = GetQueryPS();
+
         getCacheItem.setString(1,messageId);
         ResultSet resultSet = getCacheItem.executeQuery();
         while(resultSet.next()) {
@@ -145,10 +163,12 @@ public class LocalCache extends CacheLoader<String, Article> implements IArticle
                 continue;
             }
 
+            resultSet.close();
             FileInputStream fis = new FileInputStream(filePath);
             ObjectInputStream ois = new ObjectInputStream(fis);
             return  (Article) ois.readObject();
         }
+        resultSet.close();
         throw new Exception(); // TODO: Better?
     }
 
