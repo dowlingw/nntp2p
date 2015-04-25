@@ -7,6 +7,8 @@
     <groupId>io.phy</groupId>
     <artifactId>nntp2p</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <description>A caching, peering usenet proxy</description>
+    <url>https://github.com/dowlingw/nntp2p</url>
     <packaging>jar</packaging>
 
     <parent>
@@ -85,6 +87,61 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <artifactId>jdeb</artifactId>
+                <groupId>org.vafer</groupId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jdeb</goal>
+                        </goals>
+                        <configuration>
+                            <verbose>true</verbose>
+                            <snapshotExpand>false</snapshotExpand>
+                            <verbose>true</verbose>
+                            <controlDir>${basedir}/src/deb/debian</controlDir>
+                            <dataSet>
+
+                                <data>
+                                    <src>${project.build.directory}/${project.build.finalName}.jar</src>
+                                    <dst>/usr/share/nntp2p/nntp2p.jar</dst>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <user>nntp2p</user>
+                                        <group>nntp2p</group>
+                                    </mapper>
+                                </data>
+
+                                <data>
+                                    <src>${basedir}/config.sample.xml</src>
+                                    <dst>/etc/nntp2p.cfg</dst>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <user>root</user>
+                                        <group>nntp2p</group>
+                                        <filemode>640</filemode>
+                                    </mapper>
+                                </data>
+
+                                <data>
+                                    <src>${basedir}/src/deb/init/nntp2p.conf</src>
+                                    <dst>/etc/init/nntp2p.conf</dst>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                    </mapper>
+                                </data>
+
+                            </dataSet>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
         </plugins>

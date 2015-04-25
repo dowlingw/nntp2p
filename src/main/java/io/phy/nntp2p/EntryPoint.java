@@ -11,6 +11,7 @@ import io.phy.nntp2p.server.command.BodyCommand;
 import io.phy.nntp2p.server.command.QuitCommand;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -23,9 +24,12 @@ public class EntryPoint {
         SpringApplication.run(EntryPoint.class, args);
     }
 
+    @Value( "${settings.location}" )
+    private String settingsLocation;
+
     @Bean
     public XMLConfiguration xmlConfiguration() throws ConfigurationException {
-        return new XMLConfiguration("config.xml");
+        return new XMLConfiguration(settingsLocation);
     }
 
     @Bean

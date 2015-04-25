@@ -1,0 +1,3 @@
+#!/bin/sh
+
+stop nntp2p || true
