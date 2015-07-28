@@ -1,9 +1,9 @@
 package io.phy.nntp2p.proxy;
 
+import io.phy.nntp2p.common.Article;
 import io.phy.nntp2p.configuration.ConnectionType;
 import io.phy.nntp2p.configuration.User;
 import io.phy.nntp2p.exceptions.ArticleNotFoundException;
-import io.phy.nntp2p.common.Article;
 import io.phy.nntp2p.proxy.provider.IArticleCache;
 
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ public class ArticleProxy {
     private List<IArticleCache> caches;
 
     // TODO: Figure out something sensible
-    private final long articleCheckTimeoutMillis = 10000L;
+    private final long ARTICLE_CHECK_TIMEOUT_SECS = 10L;
 
     protected final static Logger log = Logger.getLogger(ArticleProxy.class.getName());
 
@@ -96,7 +96,7 @@ public class ArticleProxy {
         // Run ALL the jobs
         List<Future<ArticleCheckResult>> futures;
         try {
-            futures = jobManager.invokeAll(jobs, articleCheckTimeoutMillis, TimeUnit.MILLISECONDS);
+            futures = jobManager.invokeAll(jobs, ARTICLE_CHECK_TIMEOUT_SECS, TimeUnit.SECONDS);
 
             // Providers that have the article
             List<IArticleProvider> providers = new ArrayList<>();
@@ -105,6 +105,11 @@ public class ArticleProxy {
                 {
                     providers.add(future.get().provider);
                 }
+            }
+
+            long timedOut = futures.stream().filter(f -> f.isDone() && f.isCancelled()).count();
+            if( timedOut > 0 ) {
+                log.info(String.format("%d provider pools timed out checking message-id= %s", timedOut, messageId));
             }
 
             return determineProvider(providers,authenticatedUser);

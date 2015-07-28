@@ -12,7 +12,9 @@ import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.logging.Logger;
 
 public class OutboundConnection implements IArticleProvider {
@@ -40,55 +42,63 @@ public class OutboundConnection implements IArticleProvider {
         log.warning("Connection invalidated: " + message);
     }
 
-    public void Connect() throws IOException {
-        SocketFactory factory = configuration.isUseSsl() ? SSLSocketFactory.getDefault() : SocketFactory.getDefault();
-        Socket clientSocket = factory.createSocket(configuration.getHostname(), configuration.getPort());
-
-        // If SSL, do a handshake
-        if( configuration.isUseSsl() ) {
-            ((SSLSocket)clientSocket).startHandshake();
-        }
-
-        channel = new Channel(clientSocket);
+    public void Connect() {
         try {
+            SocketFactory factory = configuration.isUseSsl() ? SSLSocketFactory.getDefault() : SocketFactory.getDefault();
+            Socket clientSocket = factory.createSocket(configuration.getHostname(), configuration.getPort());
 
-            // Read server advertisement
-            NntpServerReply advertisement = NntpDecoder.Parse(channel);
-            if( ! advertisement.getResponseCode().isPositiveCompletion() ) {
-                Invalidate("No server advertisement received");
+            // If SSL, do a handshake
+            if( configuration.isUseSsl() ) {
+                ((SSLSocket)clientSocket).startHandshake();
+            }
+
+            channel = new Channel(clientSocket);
+            try {
+
+                // Read server advertisement
+                NntpServerReply advertisement = NntpDecoder.Parse(channel);
+                if( ! advertisement.getResponseCode().isPositiveCompletion() ) {
+                    Invalidate("No server advertisement received");
+                    return;
+                }
+
+                // Always attempt authentication
+                if( configuration.getCredentials() != null ) {
+                    NntpClientCommand sendUsername = new NntpClientCommand(NntpClientCommandType.AUTHINFO);
+                    sendUsername.getArguments().add("USER");
+                    sendUsername.getArguments().add(configuration.getCredentials().getUsername());
+
+                    NntpEncoder.WriteData(channel,sendUsername);
+                    NntpServerReply sendUsernameResponse = NntpDecoder.Parse(channel);
+
+                    if( sendUsernameResponse.getResponseCode() != NntpServerReplyType.PASSWORD_REQUIRED) {
+                        Invalidate("AUTHINFO USER followed by unexpected response: "+sendUsernameResponse.getResponseCode().name());
+                        return;
+                    }
+
+                    NntpClientCommand sendPassword = new NntpClientCommand(NntpClientCommandType.AUTHINFO);
+                    sendPassword.getArguments().add("PASS");
+                    sendPassword.getArguments().add(configuration.getCredentials().getPassword());
+
+                    NntpEncoder.WriteData(channel, sendPassword);
+                    NntpServerReply sendPasswordResponse = NntpDecoder.Parse(channel);
+
+                    if( sendPasswordResponse.getResponseCode() != NntpServerReplyType.AUTHENTICATION_ACCEPTED ) {
+                        Invalidate("Authentication rejected: "+sendPasswordResponse.getResponseCode().name());
+                        return;
+                    }
+                }
+
+            } catch (NntpUnknownResponseException e) {
+                Invalidate("Unexpected response: "+e.getResponse());
                 return;
             }
-
-            // Always attempt authentication
-            if( configuration.getCredentials() != null ) {
-                NntpClientCommand sendUsername = new NntpClientCommand(NntpClientCommandType.AUTHINFO);
-                sendUsername.getArguments().add("USER");
-                sendUsername.getArguments().add(configuration.getCredentials().getUsername());
-
-                NntpEncoder.WriteData(channel,sendUsername);
-                NntpServerReply sendUsernameResponse = NntpDecoder.Parse(channel);
-
-                if( sendUsernameResponse.getResponseCode() != NntpServerReplyType.PASSWORD_REQUIRED) {
-                    Invalidate("AUTHINFO USER followed by unexpected response: "+sendUsernameResponse.getResponseCode().name());
-                    return;
-                }
-
-                NntpClientCommand sendPassword = new NntpClientCommand(NntpClientCommandType.AUTHINFO);
-                sendPassword.getArguments().add("PASS");
-                sendPassword.getArguments().add(configuration.getCredentials().getPassword());
-
-                NntpEncoder.WriteData(channel, sendPassword);
-                NntpServerReply sendPasswordResponse = NntpDecoder.Parse(channel);
-
-                if( sendPasswordResponse.getResponseCode() != NntpServerReplyType.AUTHENTICATION_ACCEPTED ) {
-                    Invalidate("Authentication rejected: "+sendPasswordResponse.getResponseCode().name());
-                    return;
-                }
-            }
-
-        } catch (NntpUnknownResponseException e) {
-            Invalidate("Unexpected response: "+e.getResponse());
-            return;
+        } catch (UnknownHostException e) {
+            Invalidate("Unknown Host: " + e.getMessage());
+        } catch (UnsupportedEncodingException e) {
+            Invalidate(e.getMessage());
+        } catch (IOException e) {
+            Invalidate("IO Exception: " + e.getMessage());
         }
     }
 
