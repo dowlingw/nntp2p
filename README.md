@@ -1,6 +1,8 @@
 NNTP2P: A caching NNTP Proxy
 ============================
 
+[![Join the chat at https://gitter.im/dowlingw/nntp2p](https://badges.gitter.im/dowlingw/nntp2p.svg)](https://gitter.im/dowlingw/nntp2p?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Introduction
 ------------
 This is a very quick and dirty implementation of a peering, caching NNTP proxy.
